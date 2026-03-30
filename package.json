@@ -12,12 +12,13 @@
     "test:watch": "vitest",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "dev:demo": "npm run dev --workspace=apps/demo"
+    "dev:demo": "concurrently -n server,vite -c blue,green \"npm run dev:server --workspace=apps/demo\" \"npm run dev --workspace=apps/demo\""
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
+    "concurrently": "^9.2.1",
     "eslint": "^9.0.0",
     "prettier": "^3.0.0",
     "typescript": "^5.7.0",
