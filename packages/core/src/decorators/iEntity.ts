@@ -9,8 +9,18 @@ import { IRAF_ENTITY_KEY, type IEntityMeta, type IEntityOptions } from "../types
  * 1. 注入 saving hook，自動填寫 BaseObject 的稽核欄位
  * 2. 將 iRAF metadata（caption、icon、module 等）儲存至 Reflect metadata
  *
+ * **Note:** The decorated class **must** extend `BaseObject` (or otherwise
+ * declare the audit fields `createdAt`, `updatedAt`, `createdBy`, and
+ * `updatedBy`). The injected `saving` hook unconditionally writes to these
+ * properties on every save. If the fields are absent on the class, the hook
+ * will silently write to non-existent properties and auditing will **not**
+ * function correctly — no error will be thrown at runtime.
+ *
  * @param key    Remult 實體 key（對應資料庫表名或 API 路徑）
  * @param options iRAF 實體選項
+ *
+ * @requires BaseObject — decorated class must expose `createdAt`, `updatedAt`,
+ *   `createdBy`, and `updatedBy` fields for the audit hook to have any effect.
  */
 export function iEntity(key: string, options: IEntityOptions) {
   return (target: Function): void => {
