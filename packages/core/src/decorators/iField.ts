@@ -41,7 +41,7 @@ export const iField = {
       Fields.string({
         caption: options.caption,
         ...(options.required ? { validate: Validators.required } : {}),
-      })(target, propertyKey)
+      })(target, propertyKey as string)
       storeFieldMeta(target, propertyKey, extractFieldMeta(options))
     }
   },
@@ -54,7 +54,7 @@ export const iField = {
       Fields.number({
         caption: options.caption,
         ...(options.required ? { validate: Validators.required } : {}),
-      })(target, propertyKey)
+      })(target, propertyKey as string)
       storeFieldMeta(target, propertyKey, extractFieldMeta(options))
     }
   },
@@ -67,7 +67,7 @@ export const iField = {
       Fields.date({
         caption: options.caption,
         ...(options.required ? { validate: Validators.required } : {}),
-      })(target, propertyKey)
+      })(target, propertyKey as string)
       storeFieldMeta(target, propertyKey, extractFieldMeta(options))
     }
   },
@@ -79,7 +79,7 @@ export const iField = {
     return (target: object, propertyKey: string | symbol) => {
       Fields.boolean({
         caption: options.caption,
-      })(target, propertyKey)
+      })(target, propertyKey as string)
       storeFieldMeta(target, propertyKey, extractFieldMeta(options))
     }
   },
