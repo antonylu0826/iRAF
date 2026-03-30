@@ -1,0 +1,46 @@
+// packages/core/src/types/metadata.ts
+
+// ─── Symbol keys ─────────────────────────────────────────────────────────────
+/** iRAF 欄位 UI metadata 的 Reflect key */
+export const IRAF_FIELD_KEY = Symbol("iraf:field")
+
+/** iRAF 實體 metadata 的 Reflect key */
+export const IRAF_ENTITY_KEY = Symbol("iraf:entity")
+
+// ─── Field metadata ───────────────────────────────────────────────────────────
+
+/** iRAF 欄位 UI hints（儲存於 Reflect metadata，不傳給 Remult） */
+export interface IFieldMeta {
+  group?: string
+  readOnly?: boolean
+  hidden?: boolean
+  order?: number
+  displayFormat?: string
+}
+
+/** @iField.string / @iField.number 等的選項 */
+export interface IFieldOptions extends IFieldMeta {
+  caption?: string
+  required?: boolean
+}
+
+// ─── Entity metadata ──────────────────────────────────────────────────────────
+
+/** @iEntity 的選項（傳入 decorator 的參數） */
+export interface IEntityOptions {
+  caption: string
+  icon?: string
+  module?: string
+  defaultOrder?: Record<string, "asc" | "desc">
+  allowApiCrud?: boolean
+  saving?: (entity: any, event: { isNew: boolean }) => Promise<void> | void
+}
+
+/** 儲存於 Reflect metadata 的實體資訊（去掉 saving hook） */
+export interface IEntityMeta {
+  key: string
+  caption: string
+  icon?: string
+  module?: string
+  defaultOrder?: Record<string, "asc" | "desc">
+}
