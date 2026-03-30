@@ -1,1 +1,26 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Vite
+.vite/
+
+# Worktrees
 .worktrees/
+
+# Local env
+.env
+.env.local
+
+# DB files (Remult JSON DataProvider)
+db/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/settings.json
