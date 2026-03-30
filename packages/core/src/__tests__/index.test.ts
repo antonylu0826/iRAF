@@ -3,6 +3,6 @@ import { IRAF_VERSION } from "../index"
 
 describe("@iraf/core", () => {
   it("exports a version string", () => {
-    expect(IRAF_VERSION).toBe("0.0.1")
+    expect(IRAF_VERSION).toBe("0.1.0")
   })
 })
