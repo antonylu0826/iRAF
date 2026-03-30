@@ -3,6 +3,9 @@ import { useNavigate } from "react-router"
 import { remult } from "remult"
 import { EntityRegistry } from "@iraf/core"
 import { Loader2, Save, X } from "lucide-react"
+import { Button } from "./ui/button"
+import { Input } from "./ui/input"
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 
 interface DetailViewProps {
   entityClass: new () => object
@@ -21,12 +24,10 @@ export function DetailView({ entityClass, id }: DetailViewProps) {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [globalError, setGlobalError] = useState<string | null>(null)
 
-  // Editable fields: not hidden, not readOnly, sorted by order
   const editableFields = Object.entries(fieldMeta)
     .filter(([, fm]) => !fm.hidden && !fm.readOnly)
     .sort(([, a], [, b]) => (a.order ?? 999) - (b.order ?? 999))
 
-  // Group fields
   const grouped = editableFields.reduce<Record<string, typeof editableFields>>(
     (acc, entry) => {
       const group = entry[1].group ?? ""
@@ -88,12 +89,12 @@ export function DetailView({ entityClass, id }: DetailViewProps) {
     }
   }
 
-  if (!meta) return <div className="text-red-500">Entity not registered.</div>
+  if (!meta) return <div className="text-destructive">Entity not registered.</div>
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 text-gray-500">
-        <Loader2 size={16} className="animate-spin" />
+      <div className="flex items-center gap-2 text-muted-foreground">
+        <Loader2 className="h-4 w-4 animate-spin" />
         載入中…
       </div>
     )
@@ -101,67 +102,63 @@ export function DetailView({ entityClass, id }: DetailViewProps) {
 
   return (
     <div className="max-w-2xl space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-900">
-          {isNew ? `新增 ${meta.caption}` : `編輯 ${meta.caption}`}
-        </h1>
-      </div>
+      <h1 className="text-2xl font-semibold tracking-tight">
+        {isNew ? `新增 ${meta.caption}` : `編輯 ${meta.caption}`}
+      </h1>
 
       {globalError && (
-        <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">{globalError}</div>
+        <div className="rounded-md border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
+          {globalError}
+        </div>
       )}
 
       {Object.entries(grouped).map(([group, fields]) => (
-        <div key={group} className="rounded-lg border border-gray-200 bg-white shadow-sm">
+        <Card key={group}>
           {group && (
-            <div className="border-b border-gray-100 px-4 py-2 text-sm font-medium text-gray-600">
-              {group}
-            </div>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {group}
+              </CardTitle>
+            </CardHeader>
           )}
-          <div className="divide-y divide-gray-50">
-            {fields.map(([fieldKey, fm]) => (
-              <div key={fieldKey} className="flex items-start gap-4 px-4 py-3">
-                <label className="w-32 shrink-0 pt-2 text-sm font-medium text-gray-600">
-                  {fm.caption ?? fieldKey}
-                  {fm.required && <span className="ml-1 text-red-500">*</span>}
-                </label>
-                <div className="flex-1">
-                  <input
-                    type="text"
-                    value={String(data[fieldKey] ?? "")}
-                    onChange={(e) => handleChange(fieldKey, e.target.value)}
-                    className={`w-full rounded-md border px-3 py-1.5 text-sm outline-none transition-colors focus:ring-2 focus:ring-blue-500 ${
-                      errors[fieldKey]
-                        ? "border-red-400 bg-red-50"
-                        : "border-gray-300 bg-white"
-                    }`}
-                  />
-                  {errors[fieldKey] && (
-                    <p className="mt-1 text-xs text-red-600">{errors[fieldKey]}</p>
-                  )}
+          <CardContent className={group ? "pt-0" : "pt-6"}>
+            <div className="space-y-4">
+              {fields.map(([fieldKey, fm]) => (
+                <div key={fieldKey} className="grid grid-cols-4 items-start gap-4">
+                  <label className="pt-2 text-sm font-medium text-right">
+                    {fm.caption ?? fieldKey}
+                    {fm.required && <span className="ml-1 text-destructive">*</span>}
+                  </label>
+                  <div className="col-span-3 space-y-1">
+                    <Input
+                      value={String(data[fieldKey] ?? "")}
+                      onChange={(e) => handleChange(fieldKey, e.target.value)}
+                      className={errors[fieldKey] ? "border-destructive" : ""}
+                    />
+                    {errors[fieldKey] && (
+                      <p className="text-xs text-destructive">{errors[fieldKey]}</p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       ))}
 
       <div className="flex gap-3">
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60 transition-colors"
-        >
-          {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+        <Button onClick={handleSave} disabled={saving}>
+          {saving ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Save className="mr-2 h-4 w-4" />
+          )}
           儲存
-        </button>
-        <button
-          onClick={() => navigate(`/${meta.key}`)}
-          className="inline-flex items-center gap-2 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-        >
-          <X size={16} />
+        </Button>
+        <Button variant="outline" onClick={() => navigate(`/${meta.key}`)}>
+          <X className="mr-2 h-4 w-4" />
           取消
-        </button>
+        </Button>
       </div>
     </div>
   )
