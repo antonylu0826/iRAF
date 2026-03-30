@@ -10,7 +10,7 @@ describe("iField.string", () => {
       name = ""
     }
     const meta: Record<string, IFieldMeta> = Reflect.getMetadata(IRAF_FIELD_KEY, TestEntity) ?? {}
-    expect(meta["name"]).toEqual({ group: "基本資訊" })
+    expect(meta["name"]).toEqual({ caption: "姓名", group: "基本資訊" })
   })
 
   it("stores readOnly and hidden flags", () => {
@@ -22,13 +22,13 @@ describe("iField.string", () => {
     expect(meta["createdBy"]).toEqual({ readOnly: true, hidden: true })
   })
 
-  it("stores no iRAF metadata when no UI options given", () => {
+  it("stores caption in iRAF field metadata", () => {
     class TestEntity {
       @iField.string({ caption: "描述" })
       description = ""
     }
     const meta: Record<string, IFieldMeta> = Reflect.getMetadata(IRAF_FIELD_KEY, TestEntity) ?? {}
-    expect(meta["description"]).toEqual({})
+    expect(meta["description"]).toEqual({ caption: "描述" })
   })
 
   it("accumulates metadata for multiple fields", () => {
@@ -52,7 +52,7 @@ describe("iField.number", () => {
       amount = 0
     }
     const meta: Record<string, IFieldMeta> = Reflect.getMetadata(IRAF_FIELD_KEY, TestEntity) ?? {}
-    expect(meta["amount"]).toEqual({ order: 2 })
+    expect(meta["amount"]).toEqual({ caption: "金額", order: 2 })
   })
 })
 

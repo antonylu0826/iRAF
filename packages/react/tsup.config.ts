@@ -6,7 +6,7 @@ export default defineConfig({
   dts: true,
   sourcemap: true,
   clean: true,
-  external: ["react", "react-dom"],
+  external: ["react", "react-dom", "react-router", "lucide-react", "remult"],
   esbuildOptions(options) {
     options.keepNames = true
   },
