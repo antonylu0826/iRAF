@@ -7,7 +7,6 @@ import { iEntity, iField, BaseObject } from "@iraf/core"
 @iEntity("customers", {
   caption: "客戶",
   icon: "Users",
-  module: "銷售",
   allowApiCrud: true,
 })
 export class Customer extends BaseObject {
@@ -21,7 +20,7 @@ export class Customer extends BaseObject {
     caption: "Email",
     group: "聯絡資訊",
     order: 3,
-    readOnly: (e: Customer) => e.name.includes("[VIP]"),
+    readOnly: (e: Customer) => e.name?.includes("[VIP]") ?? false,
     validate: (_value, entity: Customer) => {
       if (entity.email && entity.phone && entity.email === entity.phone) {
         return "Email 與電話不能相同"

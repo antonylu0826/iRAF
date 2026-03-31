@@ -20,6 +20,10 @@ export { BaseObject } from "./base/BaseObject"
 
 // ─── Registry ─────────────────────────────────────────────────────────────────
 export { EntityRegistry } from "./registry/EntityRegistry"
+export { ModuleRegistry, defineModule } from "./registry/ModuleRegistry"
+
+// ─── Module types ─────────────────────────────────────────────────────────────
+export type { IModuleDef, IModuleOptions, IMenuItem, IModulePlugin } from "./types/module"
 
 // ─── Built-in Entities ────────────────────────────────────────────────────────
 export { iRAFUser } from "./entities/iRAFUser"

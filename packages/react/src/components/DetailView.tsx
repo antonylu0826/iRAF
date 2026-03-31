@@ -26,11 +26,20 @@ function evalBool(
 
 // ─── DetailView ───────────────────────────────────────────────────────────────
 
-export function DetailView({ entityClass }: { entityClass: new () => object }) {
+export function DetailView({
+  entityClass,
+  basePath,
+}: {
+  entityClass: new () => object
+  viewOptions?: Record<string, any>
+  /** 路由基礎路徑，例如 "/sales/customers"。由 iRAFApp 傳入 */
+  basePath?: string
+}) {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
   const meta = EntityRegistry.getMeta(entityClass as unknown as Function)
+  const base = basePath ?? (meta ? `/${meta.key}` : "")
   const fieldMeta = EntityRegistry.getFieldMeta(entityClass as unknown as Function)
   const actions = EntityRegistry.getActions(entityClass as unknown as Function)
 
@@ -88,7 +97,7 @@ export function DetailView({ entityClass }: { entityClass: new () => object }) {
       const repo = remult.repo(entityClass)
       if (isNew) {
         const saved = await repo.insert(item)
-        navigate(`/${meta?.key}/${(saved as any).id}`, { replace: true })
+        navigate(`${base}/${(saved as any).id}`, { replace: true })
       } else {
         await repo.save(item)
       }
@@ -254,7 +263,7 @@ export function DetailView({ entityClass }: { entityClass: new () => object }) {
 
         {/* Save / Cancel */}
         <div className="pt-6 border-t flex justify-end gap-3 px-1">
-          <Button type="button" variant="ghost" onClick={() => navigate(`/${meta.key}`)}>
+          <Button type="button" variant="ghost" onClick={() => navigate(base)}>
             <X className="mr-2 h-4 w-4" />
             取消
           </Button>
