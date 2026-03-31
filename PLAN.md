@@ -265,7 +265,22 @@ export class OrderController {
 
 ### Phase 5a — 插件系統（Plugin Registry） [ ]
 
-插件分為兩大類，各自有獨立的 Registry，現有的 ListView / DetailView 也納入此機制。
+插件以**分類（category）**為單位統一管理，目前規劃兩大類，但架構設計為可擴充 — 日後可新增任意分類（如 `"exporter"`、`"importer"`、`"chart"` 等）而不需修改框架核心。
+
+```ts
+// 統一的 PluginRegistry，以 category 分類
+PluginRegistry.register("view",    "list",     ListView)
+PluginRegistry.register("control", "text",     TextInput)
+PluginRegistry.register("view",    "kanban",   KanbanListView)  // 擴充
+PluginRegistry.register("exporter","excel",    ExcelExporter)   // 日後擴充
+
+// 查詢
+PluginRegistry.resolve("view",    "list")     // → ListView
+PluginRegistry.resolve("control", "richtext") // → RichTextEditor
+PluginRegistry.getAll("view")                 // → 所有已登記的 View 插件
+```
+
+現有的 ListView / DetailView 也納入此機制。
 
 #### View 插件 — 實體的呈現方式
 | 名稱 | Component | 說明 |
@@ -310,9 +325,9 @@ ViewRegistry.register("kanban", KanbanListView)
 ```
 
 #### 任務清單
-- [ ] 定義 `ViewRegistry` + `ControlRegistry`（含 register / resolve）
-- [ ] 現有 `ListView` / `DetailView` 納入 `ViewRegistry`
-- [ ] 現有 input 類型納入 `ControlRegistry`（text / number / date / boolean）
+- [ ] 定義泛型 `PluginRegistry`（category / name / component，支援任意擴充分類）
+- [ ] 現有 `ListView` / `DetailView` 納入 `PluginRegistry("view")`
+- [ ] 現有 input 類型納入 `PluginRegistry("control")`（text / number / date / boolean）
 - [ ] `IEntityOptions` 新增 `defaultView` 欄位
 - [ ] `IFieldOptions` 新增 `control` 字串欄位（取代 `inputComponent`）
 - [ ] `DetailView` 改由 `ControlRegistry.resolve(control)` 動態載入控制項
