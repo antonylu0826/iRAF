@@ -265,75 +265,122 @@ export class OrderController {
 
 ### Phase 5a — 插件系統（Plugin Registry） [ ]
 
-插件以**分類（category）**為單位統一管理，目前規劃兩大類，但架構設計為可擴充 — 日後可新增任意分類（如 `"exporter"`、`"importer"`、`"chart"` 等）而不需修改框架核心。
+插件以**分類（category）**為單位統一管理，架構設計為可擴充 — 日後可新增任意分類而不需修改框架核心。
+
+#### 架構設計
 
 ```ts
-// 統一的 PluginRegistry，以 category 分類
-PluginRegistry.register("view",    "list",     ListView)
-PluginRegistry.register("control", "text",     TextInput)
-PluginRegistry.register("view",    "kanban",   KanbanListView)  // 擴充
-PluginRegistry.register("exporter","excel",    ExcelExporter)   // 日後擴充
+// ─── Plugin Metadata ──────────────────────────────────────────────────────────
+interface IPluginMeta {
+  name: string                // 唯一 key（同 category 內）
+  caption: string             // 顯示名稱
+  icon?: string               // lucide-react 圖示名稱
+  component: React.ComponentType<any> | (() => Promise<{ default: React.ComponentType<any> }>)
+}
 
-// 查詢
-PluginRegistry.resolve("view",    "list")     // → ListView
-PluginRegistry.resolve("control", "richtext") // → RichTextEditor
-PluginRegistry.getAll("view")                 // → 所有已登記的 View 插件
+// ─── 統一 PluginRegistry API ──────────────────────────────────────────────────
+PluginRegistry.register("list-view",   { name: "list",     caption: "表格清單", component: ListView })
+PluginRegistry.register("detail-view", { name: "detail",   caption: "表單",     component: DetailView })
+PluginRegistry.register("control",     { name: "text",     caption: "文字",     component: TextInput })
+
+PluginRegistry.resolve("list-view", "list")     // → IPluginMeta
+PluginRegistry.getAll("control")                // → IPluginMeta[]
+
+// ─── 重複登記策略：報錯（避免意外覆蓋） ─────────────────────────────────────────
+PluginRegistry.register("control", { name: "text", ... }) // ❌ throw Error
+
+// ─── Default Mapping（field type → control name） ─────────────────────────────
+PluginRegistry.setDefault("control", "string",  "text")
+PluginRegistry.setDefault("control", "number",  "number")
+PluginRegistry.setDefault("control", "date",    "date")
+PluginRegistry.setDefault("control", "boolean", "boolean")
+PluginRegistry.setDefault("control", "json",    "json")
+PluginRegistry.setDefault("list-view",   "*",   "list")
+PluginRegistry.setDefault("detail-view", "*",   "detail")
+
+// ─── Lazy Loading（預留） ─────────────────────────────────────────────────────
+// component 欄位支援 () => import(...)，但 Phase 5a 只處理同步
+// 日後加 resolveAsync() 即可
 ```
 
-現有的 ListView / DetailView 也納入此機制。
+#### Props 契約
 
-#### View 插件 — 實體的呈現方式
-| 名稱 | Component | 說明 |
-|------|-----------|------|
-| `"list"` | `ListView` | 預設表格清單（現有） |
-| `"detail"` | `DetailView` | 預設表單（現有） |
-| `"kanban"` | `KanbanListView` | 看板（擴充） |
-| `"calendar"` | `CalendarView` | 行事曆（擴充） |
-| `"tree"` | `TreeListView` | 樹狀清單（擴充） |
+所有同 category 的插件遵循統一介面：
 
 ```ts
-// 框架啟動時自動登記內建 View
-ViewRegistry.register("list",   ListView)
-ViewRegistry.register("detail", DetailView)
+// ─── Control Props ─────────────────────────────────────
+interface IControlProps {
+  value: any
+  onChange: (value: any) => void
+  disabled: boolean
+  field: IFieldMeta
+  entity: Record<string, any>   // 可做跨欄位互動
+}
 
-// 外部模組擴充
-ViewRegistry.register("kanban", KanbanListView)
+// ─── List View Props ────────────────────────────────────
+interface IListViewProps {
+  entityClass: new () => object
+  viewOptions?: Record<string, any>
+}
 
-// @iEntity 指定 defaultView
-@iEntity("tasks", { caption: "任務", defaultView: "kanban" })
+// ─── Detail View Props ──────────────────────────────────
+interface IDetailViewProps {
+  entityClass: new () => object
+  id?: string
+  viewOptions?: Record<string, any>
+}
+
+// @iEntity 集中設定 viewOptions（方案 A）
+@iEntity("tasks", {
+  caption: "任務",
+  defaultListView: "kanban",
+  viewOptions: { groupByField: "status" },
+})
 ```
 
-#### Control 插件 — 欄位的編輯控制項
-| 名稱 | Component | 對應 iField 類型 |
-|------|-----------|-----------------|
-| `"text"` | `TextInput` | string（預設） |
-| `"number"` | `NumberInput` | number（預設） |
-| `"date"` | `DatePicker` | date（預設） |
-| `"datetime"` | `DateTimePicker` | date |
-| `"time"` | `TimePicker` | date |
-| `"boolean"` | `Checkbox` | boolean（預設） |
-| `"textarea"` | `Textarea` | string |
-| `"password"` | `PasswordInput` | string（擴充） |
-| `"richtext"` | `RichTextEditor` | string（擴充） |
-| `"spreadsheet"` | `SpreadsheetInput` | json（擴充） |
+#### 插件分類
+
+| Category | 說明 | 預設解析 |
+|----------|------|---------|
+| `list-view` | 實體清單頁 | → `"list"` (ListView) |
+| `detail-view` | 實體表單頁 | → `"detail"` (DetailView) |
+| `lookup-view` | Reference 欄位彈出選取 | → 未來 |
+| `control` | 欄位編輯控制項 | string→`"text"`, number→`"number"`, date→`"date"`, boolean→`"boolean"`, json→`"json"` |
+| `app-bar` | 頂部功能列項目 | 未來 |
+| `side-menu` | 側邊欄項目 | 未來 |
+
+#### Control 插件清單
+
+| 名稱 | Component | 對應 iField 類型 | Phase 5a 實作 |
+|------|-----------|-----------------|:---:|
+| `"text"` | `TextInput` | string（預設） | ✅ |
+| `"number"` | `NumberInput` | number（預設） | ✅ |
+| `"date"` | `DateInput` | date（預設） | ✅ |
+| `"boolean"` | `Checkbox` | boolean（預設） | ✅ |
+| `"textarea"` | `Textarea` | string | ✅ |
+| `"password"` | `PasswordInput` | string | ✅ |
+| `"datetime"` | `DateTimePicker` | date | 未來 |
+| `"time"` | `TimePicker` | date | 未來 |
+| `"richtext"` | `RichTextEditor` | string | 未來 |
+| `"spreadsheet"` | `SpreadsheetInput` | json | 未來 |
 
 ```ts
 // @iField 使用 control 字串指定控制項
 @iField.string({ caption: "描述", control: "textarea" })
 @iField.string({ caption: "密碼", control: "password" })
-@iField.string({ caption: "內容", control: "richtext" })
 ```
 
 #### 任務清單
-- [ ] 定義泛型 `PluginRegistry`（category / name / component，支援任意擴充分類）
-- [ ] 現有 `ListView` / `DetailView` 納入 `PluginRegistry("view")`
-- [ ] 現有 input 類型納入 `PluginRegistry("control")`（text / number / date / boolean）
-- [ ] `IEntityOptions` 新增 `defaultView` 欄位
-- [ ] `IFieldOptions` 新增 `control` 字串欄位（取代 `inputComponent`）
-- [ ] `DetailView` 改由 `ControlRegistry.resolve(control)` 動態載入控制項
-- [ ] iRAFApp 路由改由 `ViewRegistry.resolve(defaultView)` 決定清單頁元件
-- [ ] 新增 `textarea` / `password` 兩個內建 Control（常用，納入核心）
-- [ ] Demo 示範：Customer `description` 欄位使用 `"textarea"`
+- [ ] 定義 `IPluginMeta` 介面 + `IControlProps` / `IListViewProps` / `IDetailViewProps`
+- [ ] 實作泛型 `PluginRegistry`（register / resolve / getAll / setDefault，重複報錯）
+- [ ] `IFieldOptions` 新增 `control` 字串欄位
+- [ ] `IEntityOptions` 新增 `defaultListView` / `viewOptions` 欄位
+- [ ] 實作 6 個內建 Control component（text / number / date / boolean / textarea / password）
+- [ ] 框架啟動時自動登記內建 list-view、detail-view、control
+- [ ] `DetailView` 改由 `PluginRegistry.resolve("control", ...)` 動態載入控制項
+- [ ] `iRAFApp` 路由改由 `PluginRegistry.resolve("list-view", ...)` 決定清單頁元件
+- [ ] Demo 示範：Customer 新增 `notes` 欄位使用 `"textarea"`
+- [ ] 測試：PluginRegistry 的 register / resolve / setDefault / 重複報錯
 
 ---
 
