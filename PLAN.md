@@ -257,11 +257,11 @@ export class OrderController {
 - [x] 前後端雙層權限控制
 - [x] 登入 / Session 管理
 
-### Phase 4 — 業務功能層 [ ]
-- [ ] `@iAction` / Controller 整合
-- [ ] Audit Trail（變更歷史自動記錄）
-- [ ] 業務驗證規則引擎（前後端共享）
-- [ ] Conditional Appearance（依數據狀態控制欄位唯讀/隱藏）
+### Phase 4 — 業務功能層 [x]
+- [x] `@iAction` / Controller 整合
+- [x] Audit Trail（變更歷史自動記錄）
+- [x] 業務驗證規則引擎（前後端共享）
+- [x] Conditional Appearance（依數據狀態控制欄位唯讀/隱藏）
 
 ### Phase 5 — 模組系統 [ ]
 - [ ] 模組 (Module) 定義機制
