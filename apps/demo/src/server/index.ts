@@ -2,14 +2,19 @@
 import express from "express"
 import { remultExpress } from "remult/remult-express"
 import { Customer } from "../shared/entities/Customer"
+import { iRAFUser } from "@iraf/core"
+import { getUser, createAuthRouter } from "./auth"
 
 const app = express()
+app.use(express.json())
+
+// Auth 路由（login / register / me）
+app.use(createAuthRouter())
 
 app.use(
   remultExpress({
-    entities: [Customer],
-    // Phase 1 使用 InMemoryDataProvider（預設），資料不持久化
-    // Phase 4 會換成 SQLite/PostgreSQL
+    entities: [Customer, iRAFUser],
+    getUser,
   })
 )
 
@@ -20,5 +25,4 @@ app.get("/", (_req, res) => {
 const PORT = 3001
 app.listen(PORT, () => {
   console.log(`iRAF Demo Server started on http://localhost:${PORT}`)
-  console.log(`Customer API: http://localhost:${PORT}/api/customers`)
 })

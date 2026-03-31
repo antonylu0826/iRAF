@@ -7,6 +7,12 @@ import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Separator } from "./ui/separator"
 import { cn } from "../lib/utils"
+import { useAuth } from "../context/AuthContext"
+
+function hasRole(userRoles: string[], required?: string[]): boolean {
+  if (!required || required.length === 0) return true
+  return required.some((r) => userRoles.includes(r))
+}
 
 interface DetailViewProps {
   entityClass: new () => object
@@ -15,9 +21,14 @@ interface DetailViewProps {
 
 export function DetailView({ entityClass, id }: DetailViewProps) {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const isNew = id === "new"
   const meta = EntityRegistry.getMeta(entityClass as unknown as Function)
   const fieldMeta = EntityRegistry.getFieldMeta(entityClass as unknown as Function)
+  const allowedRoles = meta?.allowedRoles
+  const canSave = isNew
+    ? hasRole(user?.roles ?? [], allowedRoles?.create)
+    : hasRole(user?.roles ?? [], allowedRoles?.update)
 
   const [data, setData] = useState<Record<string, unknown>>({})
   const [loading, setLoading] = useState(!isNew)
@@ -157,7 +168,7 @@ export function DetailView({ entityClass, id }: DetailViewProps) {
       <Separator />
 
       <div className="flex items-center gap-3 pt-2">
-        <Button onClick={handleSave} disabled={saving}>
+        <Button onClick={handleSave} disabled={saving || !canSave}>
           {saving ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (

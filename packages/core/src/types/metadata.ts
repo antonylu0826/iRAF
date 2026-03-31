@@ -25,13 +25,22 @@ export interface IFieldOptions extends IFieldMeta {}
 
 // ─── Entity metadata ──────────────────────────────────────────────────────────
 
+/** RBAC 角色權限設定 */
+export interface IEntityRoles {
+  read?: string[]
+  create?: string[]
+  update?: string[]
+  delete?: string[]
+}
+
 /** @iEntity 的選項（傳入 decorator 的參數） */
 export interface IEntityOptions {
   caption: string
   icon?: string
   module?: string
   defaultOrder?: Record<string, "asc" | "desc">
-  allowApiCrud?: boolean
+  allowApiCrud?: boolean | string[]
+  allowedRoles?: IEntityRoles
   saving?: (entity: any, event: { isNew: boolean }) => Promise<void> | void
 }
 
@@ -42,4 +51,5 @@ export interface IEntityMeta {
   icon?: string
   module?: string
   defaultOrder?: Record<string, "asc" | "desc">
+  allowedRoles?: IEntityRoles
 }
