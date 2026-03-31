@@ -5,7 +5,8 @@ import { EntityRegistry } from "@iraf/core"
 import { Loader2, Save, X } from "lucide-react"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
+import { Separator } from "./ui/separator"
+import { cn } from "../lib/utils"
 
 interface DetailViewProps {
   entityClass: new () => object
@@ -112,41 +113,50 @@ export function DetailView({ entityClass, id }: DetailViewProps) {
         </div>
       )}
 
-      {Object.entries(grouped).map(([group, fields]) => (
-        <Card key={group}>
-          {group && (
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {group}
-              </CardTitle>
-            </CardHeader>
-          )}
-          <CardContent className={group ? "pt-0" : "pt-6"}>
-            <div className="space-y-4">
+      <div className="space-y-12">
+        {Object.entries(grouped).map(([group, fields]) => (
+          <section key={group} className="space-y-6">
+            {group && (
+              <div className="space-y-1.5">
+                <h2 className="text-lg font-semibold tracking-tight">{group}</h2>
+                <Separator />
+              </div>
+            )}
+            <div className="grid gap-x-8 gap-y-6">
               {fields.map(([fieldKey, fm]) => (
-                <div key={fieldKey} className="grid grid-cols-4 items-start gap-4">
-                  <label className="pt-2 text-sm font-medium text-right">
+                <div
+                  key={fieldKey}
+                  className="grid grid-cols-1 md:grid-cols-4 items-start gap-2 md:gap-4"
+                >
+                  <label className="text-sm font-medium pt-2 md:text-right text-muted-foreground uppercase tracking-wider text-[10px]">
                     {fm.caption ?? fieldKey}
                     {fm.required && <span className="ml-1 text-destructive">*</span>}
                   </label>
-                  <div className="col-span-3 space-y-1">
+                  <div className="md:col-span-3 space-y-1.5">
                     <Input
                       value={String(data[fieldKey] ?? "")}
                       onChange={(e) => handleChange(fieldKey, e.target.value)}
-                      className={errors[fieldKey] ? "border-destructive" : ""}
+                      className={cn(
+                        "h-9 focus-visible:ring-1",
+                        errors[fieldKey] ? "border-destructive ring-destructive/20" : ""
+                      )}
                     />
                     {errors[fieldKey] && (
-                      <p className="text-xs text-destructive">{errors[fieldKey]}</p>
+                      <p className="text-[12px] font-medium text-destructive">
+                        {errors[fieldKey]}
+                      </p>
                     )}
                   </div>
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
-      ))}
+          </section>
+        ))}
+      </div>
 
-      <div className="flex gap-3">
+      <Separator />
+
+      <div className="flex items-center gap-3 pt-2">
         <Button onClick={handleSave} disabled={saving}>
           {saving ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

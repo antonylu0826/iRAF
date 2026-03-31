@@ -2,6 +2,8 @@ import React from "react"
 import { NavLink } from "react-router"
 import { EntityRegistry, type IEntityMeta } from "@iraf/core"
 import * as LucideIcons from "lucide-react"
+import { Separator } from "./ui/separator"
+import { cn } from "../lib/utils"
 
 interface SidebarProps {
   title: string
@@ -19,7 +21,6 @@ type NavEntry = { entityClass: Function; meta: IEntityMeta }
 export function Sidebar({ title }: SidebarProps) {
   const entries = EntityRegistry.getAllWithMeta()
 
-  // Group by module
   const grouped = entries.reduce<Record<string, NavEntry[]>>((acc, entry) => {
     const group = entry.meta.module ?? ""
     if (!acc[group]) acc[group] = []
@@ -28,34 +29,41 @@ export function Sidebar({ title }: SidebarProps) {
   }, {})
 
   return (
-    <aside className="w-56 shrink-0 bg-gray-900 text-gray-100 flex flex-col h-full">
-      <div className="px-4 py-4 text-lg font-semibold border-b border-gray-700 truncate">
-        {title}
+    <aside className="w-64 shrink-0 border-r bg-background flex flex-col h-full">
+      <div className="px-6 py-4 flex items-center gap-3 border-b">
+        <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center">
+          <span className="text-primary-foreground text-sm font-semibold">i</span>
+        </div>
+        <h1 className="text-lg font-semibold tracking-tight truncate">{title}</h1>
       </div>
-      <nav className="flex-1 overflow-y-auto py-2">
-        {Object.entries(grouped).map(([module, items]) => (
-          <div key={module} className="mb-2">
+      <nav className="flex-1 overflow-y-auto py-4">
+        {Object.entries(grouped).map(([module, items], moduleIndex) => (
+          <div key={module}>
+            {moduleIndex > 0 && <Separator className="my-3" />}
             {module && (
-              <div className="px-4 py-1 text-xs font-medium text-gray-400 uppercase tracking-wider">
+              <div className="px-6 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-widest">
                 {module}
               </div>
             )}
-            {items.map((entry) => (
-              <NavLink
-                key={entry.meta.key}
-                to={`/${entry.meta.key}`}
-                className={({ isActive }) =>
-                  `flex items-center gap-2 px-4 py-2 text-sm transition-colors ${
-                    isActive
-                      ? "bg-gray-700 text-white"
-                      : "text-gray-300 hover:bg-gray-800 hover:text-white"
-                  }`
-                }
-              >
-                <NavIcon name={entry.meta.icon} />
-                {entry.meta.caption}
-              </NavLink>
-            ))}
+            <div className="space-y-1 px-3">
+              {items.map((entry) => (
+                <NavLink
+                  key={entry.meta.key}
+                  to={`/${entry.meta.key}`}
+                  className={({ isActive }) =>
+                    cn(
+                      "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    )
+                  }
+                >
+                  <NavIcon name={entry.meta.icon} />
+                  <span className="truncate">{entry.meta.caption}</span>
+                </NavLink>
+              ))}
+            </div>
           </div>
         ))}
       </nav>

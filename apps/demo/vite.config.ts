@@ -7,6 +7,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@iraf/react": path.resolve(__dirname, "../../packages/react/src/index.ts"),
     },
   },
   server: {
