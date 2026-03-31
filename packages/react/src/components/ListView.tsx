@@ -56,7 +56,7 @@ export function ListView({ entityClass }: ListViewProps) {
         <h1 className="text-2xl font-semibold tracking-tight">{meta.caption}</h1>
         {canCreate && (
           <Button onClick={() => navigate(`/${meta.key}/new`)} size="sm">
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="h-4 w-4" />
             新增
           </Button>
         )}

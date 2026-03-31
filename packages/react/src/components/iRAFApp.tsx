@@ -49,16 +49,11 @@ function AppRoutes({ title }: { title: string }) {
           return (
             <Route key={meta.key} path={meta.key}>
               <Route index element={<ListView entityClass={EntityClass} />} />
-              <Route path=":id" element={<RouteDetailView entityClass={EntityClass} />} />
+              <Route path=":id" element={<DetailView entityClass={EntityClass} />} />
             </Route>
           )
         })}
       </Route>
     </Routes>
   )
-}
-
-function RouteDetailView({ entityClass }: { entityClass: new () => object }) {
-  const { id = "new" } = useParams<{ id: string }>()
-  return <DetailView entityClass={entityClass} id={id} />
 }

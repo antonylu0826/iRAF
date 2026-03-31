@@ -69,11 +69,6 @@ export function LoginPage() {
           </Button>
         </form>
 
-        <p className="text-center text-xs text-muted-foreground">
-          首次使用？呼叫{" "}
-          <code className="font-mono">POST /api/auth/register</code>{" "}
-          建立管理員帳號
-        </p>
       </div>
     </div>
   )

@@ -1,8 +1,8 @@
 // apps/demo/src/server/auth.ts
 // JWT 認證輔助：login 路由 + Remult getUser middleware
 import { Router } from "express"
-import * as jwt from "jsonwebtoken"
-import * as bcrypt from "bcrypt"
+import jwt from "jsonwebtoken"
+import bcrypt from "bcrypt"
 import { remult } from "remult"
 import { iRAFUser } from "@iraf/core"
 
@@ -34,32 +34,37 @@ export function getUser(req: { headers: Record<string, string | string[] | undef
 
 // ─── Auth Router ──────────────────────────────────────────────────────────────
 
-export function createAuthRouter(): Router {
+export function createAuthRouter(withRemult: import("express").RequestHandler): Router {
   const router = Router()
 
   /** POST /api/auth/login — 驗證帳號密碼，回傳 JWT */
-  router.post("/api/auth/login", async (req, res) => {
-    const { username, password } = req.body as { username?: string; password?: string }
-    if (!username || !password) {
-      res.status(400).json({ message: "帳號與密碼為必填" })
-      return
+  router.post("/api/auth/login", withRemult, async (req, res) => {
+    try {
+      const { username, password } = req.body as { username?: string; password?: string }
+      if (!username || !password) {
+        res.status(400).json({ message: "帳號與密碼為必填" })
+        return
+      }
+      const repo = remult.repo(iRAFUser)
+      const user = await repo.findFirst({ username })
+      if (!user) {
+        res.status(401).json({ message: "帳號或密碼錯誤" })
+        return
+      }
+      const valid = await bcrypt.compare(password, user.passwordHash)
+      if (!valid) {
+        res.status(401).json({ message: "帳號或密碼錯誤" })
+        return
+      }
+      res.json({ token: signToken(user), user: { id: user.id, name: user.displayName || user.username, roles: user.roles } })
+    } catch (e) {
+      console.error("[auth/login error]", e)
+      res.status(500).json({ message: String(e) })
     }
-    const repo = remult.repo(iRAFUser)
-    const user = await repo.findFirst({ username })
-    if (!user) {
-      res.status(401).json({ message: "帳號或密碼錯誤" })
-      return
-    }
-    const valid = await bcrypt.compare(password, user.passwordHash)
-    if (!valid) {
-      res.status(401).json({ message: "帳號或密碼錯誤" })
-      return
-    }
-    res.json({ token: signToken(user), user: { id: user.id, name: user.displayName || user.username, roles: user.roles } })
   })
 
   /** POST /api/auth/register — 僅開發用：建立首位管理員（只有在無任何使用者時有效） */
-  router.post("/api/auth/register", async (req, res) => {
+  router.post("/api/auth/register", withRemult, async (req, res) => {
     const { username, password, displayName } = req.body as {
       username?: string
       password?: string
@@ -81,7 +86,7 @@ export function createAuthRouter(): Router {
   })
 
   /** GET /api/auth/me — 回傳目前登入使用者資訊 */
-  router.get("/api/auth/me", (req, res) => {
+  router.get("/api/auth/me", withRemult, (req, res) => {
     const user = remult.user
     if (!user) {
       res.status(401).json({ message: "未登入" })

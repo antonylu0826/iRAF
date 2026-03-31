@@ -236,42 +236,48 @@ export class OrderController {
 
 ## 開發階段規劃
 
-### Phase 0 — 專案鷹架
-- Monorepo 結構（`core/` + `react/` + `demo/`）
-- 開發工具鏈：Vite、TypeScript、ESLint、Prettier
+### Phase 0 — 專案鷹架 [x]
+- [x] Monorepo 結構（`core/` + `react/` + `demo/`）
+- [x] 開發工具鏈：Vite、TypeScript、ESLint、Prettier
 
-### Phase 1 — 核心底座
-- `BaseObject` 實作（稽核欄位 + saving hook）
-- `@iEntity` / `@iField` decorator 實作
-- `EntityRegistry` 實作
-- Remult server 整合
+### Phase 1 — 核心底座 [x]
+- [x] `BaseObject` 實作（稽核欄位 + saving hook）
+- [x] `@iEntity` / `@iField` decorator 實作
+- [x] `EntityRegistry` 實作
+- [x] Remult server 整合
 
-### Phase 2 — UI 引擎 MVP
-- App Shell（Layout + 導航）
-- ListView 自動渲染
-- DetailView 自動渲染（含表單分組）
-- 三層覆寫機制
+### Phase 2 — UI 引擎 MVP [x]
+- [x] App Shell（Layout + 導航）
+- [x] ListView 自動渲染
+- [x] DetailView 自動渲染（含表單分組）
+- [x] 三層覆寫機制
 
-### Phase 3 — 安全層
-- RBAC 模型（User / Role / Permission）
-- 前後端雙層權限控制
-- 登入 / Session 管理
+### Phase 3 — 安全層 [ ]
+- [ ] RBAC 模型（User / Role / Permission）
+- [ ] 前後端雙層權限控制
+- [ ] 登入 / Session 管理
 
-### Phase 4 — 業務功能層
-- `@iAction` / Controller 整合
-- Audit Trail（變更歷史自動記錄）
-- 業務驗證規則引擎（前後端共享）
-- Conditional Appearance（依數據狀態控制欄位唯讀/隱藏）
+### Phase 4 — 業務功能層 [ ]
+- [ ] `@iAction` / Controller 整合
+- [ ] Audit Trail（變更歷史自動記錄）
+- [ ] 業務驗證規則引擎（前後端共享）
+- [ ] Conditional Appearance（依數據狀態控制欄位唯讀/隱藏）
 
-### Phase 5 — 模組系統
-- 模組 (Module) 定義機制
-- 模組級 UI 擴充（自訂 Dashboard、自訂視圖）
-- 模組間依賴管理
+### Phase 5 — 模組系統 [ ]
+- [ ] 模組 (Module) 定義機制
+- [ ] 模組級 UI 擴充（自訂 Dashboard、自訂視圖）
+- [ ] 模組間依賴管理
 
-### Phase 6 — 開發體驗
-- CLI 工具（`iraf new entity Customer`）
-- VS Code Extension（BO metadata 智能提示）
-- AI Agent prompt templates（讓 agent 能按框架慣例生成 BO）
+### Phase 6 — 開發體驗 [ ]
+- [ ] CLI 工具（`iraf new entity Customer`）
+- [ ] VS Code Extension（BO metadata 智能提示）
+- [ ] AI Agent prompt templates（讓 agent 能按框架慣例生成 BO）
+
+### Phase 7 — 進階安全與用戶體驗 [ ]
+- [ ] 使用者管理介面優化（角色指派與狀態管理）
+- [ ] 「重設密碼」自定義動作（iAction 設計）
+- [ ] 忘記密碼與 Email 驗證機制
+- [ ] 密碼強度規則引擎與安全性加強
 
 ---
 
