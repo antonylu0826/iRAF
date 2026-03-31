@@ -61,7 +61,7 @@ describe("EntityRegistry", () => {
     const { RegCustomer } = makeTestEntities()
     EntityRegistry.register(RegCustomer)
     const fieldMeta = EntityRegistry.getFieldMeta(RegCustomer)
-    expect(fieldMeta["name"]).toEqual({})
+    expect(fieldMeta["name"]).toEqual({ caption: "姓名", required: true })
   })
 
   it("clear() empties the registry", () => {

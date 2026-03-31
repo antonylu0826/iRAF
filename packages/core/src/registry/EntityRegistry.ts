@@ -31,6 +31,16 @@ export class EntityRegistry {
     return [...this._entities]
   }
 
+  /** 取得所有已登記的 BO class 及其 iRAF entity metadata（供 UI 層使用）。 */
+  static getAllWithMeta(): Array<{ entityClass: Function; meta: IEntityMeta }> {
+    return this._entities
+      .map((entityClass) => {
+        const meta = Reflect.getMetadata(IRAF_ENTITY_KEY, entityClass) as IEntityMeta | undefined
+        return meta ? { entityClass, meta } : null
+      })
+      .filter((x): x is { entityClass: Function; meta: IEntityMeta } => x !== null)
+  }
+
   /**
    * 取得指定 BO 的 iRAF 實體 metadata（caption、icon、module 等）。
    * 若該 class 未以 @iEntity 裝飾，回傳 undefined。

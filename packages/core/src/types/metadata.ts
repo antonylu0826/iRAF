@@ -9,9 +9,11 @@ export const IRAF_ENTITY_KEY = Symbol("iraf:entity")
 
 // ─── Field metadata ───────────────────────────────────────────────────────────
 
-/** iRAF 欄位 UI hints（儲存於 Reflect metadata，不傳給 Remult） */
+/** iRAF 欄位 UI hints（儲存於 Reflect metadata） */
 export interface IFieldMeta {
+  caption?: string
   group?: string
+  required?: boolean
   readOnly?: boolean
   hidden?: boolean
   order?: number
@@ -19,10 +21,7 @@ export interface IFieldMeta {
 }
 
 /** @iField.string / @iField.number 等的選項 */
-export interface IFieldOptions extends IFieldMeta {
-  caption?: string
-  required?: boolean
-}
+export interface IFieldOptions extends IFieldMeta {}
 
 // ─── Entity metadata ──────────────────────────────────────────────────────────
 

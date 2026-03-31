@@ -4,13 +4,15 @@ import { IRAF_FIELD_KEY, type IFieldMeta, type IFieldOptions } from "../types/me
 
 // ─── 內部工具函式 ──────────────────────────────────────────────────────────────
 
-/** 從 IFieldOptions 中取出 iRAF UI hints（排除 caption 和 required） */
+/** 從 IFieldOptions 中取出 iRAF UI hints（排除 required） */
 function extractFieldMeta(options: IFieldOptions): IFieldMeta {
   const meta: IFieldMeta = {}
+  if (options.caption !== undefined) meta.caption = options.caption
   if (options.group !== undefined) meta.group = options.group
   if (options.readOnly !== undefined) meta.readOnly = options.readOnly
   if (options.hidden !== undefined) meta.hidden = options.hidden
   if (options.order !== undefined) meta.order = options.order
+  if (options.required !== undefined) meta.required = options.required
   if (options.displayFormat !== undefined) meta.displayFormat = options.displayFormat
   return meta
 }

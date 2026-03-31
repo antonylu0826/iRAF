@@ -3,6 +3,6 @@ import { IRAF_REACT_VERSION } from "../index"
 
 describe("@iraf/react", () => {
   it("exports a version string", () => {
-    expect(IRAF_REACT_VERSION).toBe("0.0.1")
+    expect(IRAF_REACT_VERSION).toBe("0.2.0")
   })
 })
