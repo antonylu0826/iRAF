@@ -1,4 +1,12 @@
-import { IRAF_ENTITY_KEY, IRAF_FIELD_KEY, type IEntityMeta, type IFieldMeta } from "../types/metadata"
+import {
+  IRAF_ENTITY_KEY,
+  IRAF_FIELD_KEY,
+  IRAF_ACTION_KEY,
+  IRAF_CONTROLLER_KEY,
+  type IEntityMeta,
+  type IFieldMeta,
+  type IActionMeta,
+} from "../types/metadata"
 
 /**
  * EntityRegistry — iRAF 實體登記簿。
@@ -55,6 +63,40 @@ export class EntityRegistry {
    */
   static getFieldMeta(entityClass: Function): Record<string, IFieldMeta> {
     return Reflect.getOwnMetadata(IRAF_FIELD_KEY, entityClass) ?? {}
+  }
+
+  /**
+   * 取得指定 BO 所有關聯 Controller 的 @iAction 列表。
+   * 供 DetailView 渲染 Action Bar 使用。
+   */
+  static getActions(
+    entityClass: Function
+  ): Array<{ controllerClass: Function; meta: IActionMeta }> {
+    const controllers: Function[] =
+      Reflect.getOwnMetadata(IRAF_CONTROLLER_KEY, entityClass) ?? []
+    const actions: Array<{ controllerClass: Function; meta: IActionMeta }> = []
+    for (const ctrl of controllers) {
+      const metas: IActionMeta[] =
+        Reflect.getOwnMetadata(IRAF_ACTION_KEY, ctrl) ?? []
+      for (const meta of metas) {
+        actions.push({ controllerClass: ctrl, meta })
+      }
+    }
+    return actions
+  }
+
+  /**
+   * 取得所有已關聯的 Controller class。
+   * 供 remultExpress({ controllers: EntityRegistry.getAllControllers() }) 使用。
+   */
+  static getAllControllers(): Function[] {
+    const seen = new Set<Function>()
+    for (const entityClass of this._entities) {
+      const controllers: Function[] =
+        Reflect.getOwnMetadata(IRAF_CONTROLLER_KEY, entityClass) ?? []
+      for (const ctrl of controllers) seen.add(ctrl)
+    }
+    return [...seen]
   }
 
   /** 清除所有登記（主要用於測試）。 */

@@ -1,11 +1,10 @@
 // packages/core/src/types/metadata.ts
 
 // ─── Symbol keys ─────────────────────────────────────────────────────────────
-/** iRAF 欄位 UI metadata 的 Reflect key */
 export const IRAF_FIELD_KEY = Symbol("iraf:field")
-
-/** iRAF 實體 metadata 的 Reflect key */
 export const IRAF_ENTITY_KEY = Symbol("iraf:entity")
+export const IRAF_ACTION_KEY = Symbol("iraf:action")
+export const IRAF_CONTROLLER_KEY = Symbol("iraf:controller")
 
 // ─── Field metadata ───────────────────────────────────────────────────────────
 
@@ -14,10 +13,16 @@ export interface IFieldMeta {
   caption?: string
   group?: string
   required?: boolean
-  readOnly?: boolean
-  hidden?: boolean
+  /** 靜態 boolean 或依實體狀態動態計算的函式 */
+  readOnly?: boolean | ((entity: any) => boolean)
+  /** 靜態 boolean 或依實體狀態動態計算的函式 */
+  hidden?: boolean | ((entity: any) => boolean)
   order?: number
   displayFormat?: string
+  /** 跨欄位驗證：回傳錯誤字串表示驗證失敗，回傳 undefined 表示通過 */
+  validate?: (value: any, entity: any) => string | undefined
+  /** 標記為稽核欄位，在 DetailView 底部獨立顯示 */
+  auditField?: boolean
 }
 
 /** @iField.string / @iField.number 等的選項 */
@@ -52,4 +57,15 @@ export interface IEntityMeta {
   module?: string
   defaultOrder?: Record<string, "asc" | "desc">
   allowedRoles?: IEntityRoles
+}
+
+// ─── Action metadata ──────────────────────────────────────────────────────────
+
+/** @iAction 的 metadata */
+export interface IActionMeta {
+  methodName: string
+  caption: string
+  icon?: string
+  allowedRoles?: string[]
+  confirmMessage?: string
 }
