@@ -23,6 +23,10 @@ export interface IFieldMeta {
   validate?: (value: any, entity: any) => string | undefined
   /** 標記為稽核欄位，在 DetailView 底部獨立顯示 */
   auditField?: boolean
+  /** 指定此欄位使用的 control 插件名稱（e.g. "textarea", "password"）。未指定時由 field type 決定預設 control */
+  control?: string
+  /** iRAF 內部：紀錄 field 的基礎型別（"string" | "number" | "date" | "boolean" | "json"），供 PluginRegistry 解析預設 control */
+  _type?: string
 }
 
 /** @iField.string / @iField.number 等的選項 */
@@ -47,6 +51,10 @@ export interface IEntityOptions {
   allowApiCrud?: boolean | string[]
   allowedRoles?: IEntityRoles
   saving?: (entity: any, event: { isNew: boolean }) => Promise<void> | void
+  /** 指定此實體的清單頁使用哪個 list-view 插件（預設 "list"） */
+  defaultListView?: string
+  /** 傳給 list-view / detail-view 插件的自訂選項 */
+  viewOptions?: Record<string, any>
 }
 
 /** 儲存於 Reflect metadata 的實體資訊（去掉 saving hook） */
@@ -57,6 +65,8 @@ export interface IEntityMeta {
   module?: string
   defaultOrder?: Record<string, "asc" | "desc">
   allowedRoles?: IEntityRoles
+  defaultListView?: string
+  viewOptions?: Record<string, any>
 }
 
 // ─── Action metadata ──────────────────────────────────────────────────────────

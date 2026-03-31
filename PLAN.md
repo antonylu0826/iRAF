@@ -263,7 +263,7 @@ export class OrderController {
 - [x] 業務驗證規則引擎（前後端共享）
 - [x] Conditional Appearance（依數據狀態控制欄位唯讀/隱藏）
 
-### Phase 5a — 插件系統（Plugin Registry） [ ]
+### Phase 5a — 插件系統（Plugin Registry） [x]
 
 插件以**分類（category）**為單位統一管理，架構設計為可擴充 — 日後可新增任意分類而不需修改框架核心。
 
@@ -371,16 +371,16 @@ interface IDetailViewProps {
 ```
 
 #### 任務清單
-- [ ] 定義 `IPluginMeta` 介面 + `IControlProps` / `IListViewProps` / `IDetailViewProps`
-- [ ] 實作泛型 `PluginRegistry`（register / resolve / getAll / setDefault，重複報錯）
-- [ ] `IFieldOptions` 新增 `control` 字串欄位
-- [ ] `IEntityOptions` 新增 `defaultListView` / `viewOptions` 欄位
-- [ ] 實作 6 個內建 Control component（text / number / date / boolean / textarea / password）
-- [ ] 框架啟動時自動登記內建 list-view、detail-view、control
-- [ ] `DetailView` 改由 `PluginRegistry.resolve("control", ...)` 動態載入控制項
-- [ ] `iRAFApp` 路由改由 `PluginRegistry.resolve("list-view", ...)` 決定清單頁元件
-- [ ] Demo 示範：Customer 新增 `notes` 欄位使用 `"textarea"`
-- [ ] 測試：PluginRegistry 的 register / resolve / setDefault / 重複報錯
+- [x] 定義 `IPluginMeta` 介面 + `IControlProps` / `IListViewProps` / `IDetailViewProps`
+- [x] 實作泛型 `PluginRegistry`（register / resolve / getAll / setDefault，重複報錯）
+- [x] `IFieldOptions` 新增 `control` 字串欄位
+- [x] `IEntityOptions` 新增 `defaultListView` / `viewOptions` 欄位
+- [x] 實作 6 個內建 Control component（text / number / date / boolean / textarea / password）
+- [x] 框架啟動時自動登記內建 list-view、detail-view、control
+- [x] `DetailView` 改由 `PluginRegistry.resolve("control", ...)` 動態載入控制項
+- [x] `iRAFApp` 路由改由 `PluginRegistry.resolve("list-view", ...)` 決定清單頁元件
+- [x] Demo 示範：Customer 新增 `notes` 欄位使用 `"textarea"`
+- [x] 測試：PluginRegistry 的 register / resolve / setDefault / 重複報錯
 
 ---
 

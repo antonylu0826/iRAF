@@ -29,4 +29,7 @@ export class Customer extends BaseObject {
     },
   })
   email = ""
+
+  @iField.string({ caption: "備註", group: "其他", order: 10, control: "textarea" })
+  notes = ""
 }
