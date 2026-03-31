@@ -21,6 +21,7 @@ export class Customer extends BaseObject {
     caption: "Email",
     group: "聯絡資訊",
     order: 3,
+    readOnly: (e: Customer) => e.name.includes("[VIP]"),
     validate: (_value, entity: Customer) => {
       if (entity.email && entity.phone && entity.email === entity.phone) {
         return "Email 與電話不能相同"

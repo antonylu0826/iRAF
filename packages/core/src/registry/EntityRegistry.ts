@@ -24,6 +24,14 @@ import {
  */
 export class EntityRegistry {
   private static _entities: Function[] = []
+  private static _controllers: Function[] = []
+
+  /** 由 @iController 呼叫，直接登記 controller（不依賴 _entities）。 */
+  static registerController(ctrl: Function): void {
+    if (!this._controllers.includes(ctrl)) {
+      this._controllers.push(ctrl)
+    }
+  }
 
   /** 登記一或多個 BO。重複登記同一個 class 會被忽略。 */
   static register(...entities: Function[]): void {
@@ -88,19 +96,15 @@ export class EntityRegistry {
   /**
    * 取得所有已關聯的 Controller class。
    * 供 remultExpress({ controllers: EntityRegistry.getAllControllers() }) 使用。
+   * 由 @iController 直接維護，不依賴 _entities 是否已填入。
    */
   static getAllControllers(): Function[] {
-    const seen = new Set<Function>()
-    for (const entityClass of this._entities) {
-      const controllers: Function[] =
-        Reflect.getOwnMetadata(IRAF_CONTROLLER_KEY, entityClass) ?? []
-      for (const ctrl of controllers) seen.add(ctrl)
-    }
-    return [...seen]
+    return [...this._controllers]
   }
 
   /** 清除所有登記（主要用於測試）。 */
   static clear(): void {
     this._entities = []
+    this._controllers = []
   }
 }

@@ -111,8 +111,9 @@ export function DetailView({ entityClass }: { entityClass: new () => object }) {
       // reload
       const data = await remult.repo(entityClass).findId(item.id)
       if (data) setItem(data as any)
-    } catch (e) {
-      setGlobalError(String(e))
+    } catch (e: any) {
+      console.error("[iRAF] Action failed:", e)
+      setGlobalError(e.message || (typeof e === 'object' ? JSON.stringify(e) : String(e)))
     } finally {
       setActionLoading(null)
     }
@@ -194,8 +195,8 @@ export function DetailView({ entityClass }: { entityClass: new () => object }) {
 
       <form onSubmit={handleSave} className="space-y-8">
         {globalError && (
-          <div className="rounded-md border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
-            {globalError}
+          <div className="rounded-md border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive font-medium animate-in fade-in slide-in-from-top-1">
+            {typeof globalError === 'object' ? JSON.stringify(globalError) : globalError}
           </div>
         )}
 
@@ -251,7 +252,7 @@ export function DetailView({ entityClass }: { entityClass: new () => object }) {
               ) : (
                 <Save className="mr-2 h-4 w-4" />
               )}
-              儲存 {meta.caption}
+              儲存
             </Button>
           )}
         </div>
