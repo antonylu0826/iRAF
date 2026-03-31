@@ -13,7 +13,7 @@ function NavIcon({ name }: { name?: string }) {
   if (!name) return null
   const Icon = (LucideIcons as unknown as Record<string, React.ComponentType<{ size?: number; className?: string }>>)[name]
   if (!Icon) return null
-  return <Icon size={16} className="shrink-0" />
+  return <Icon size={18} className="shrink-0" />
 }
 
 type NavEntry = { entityClass: Function; meta: IEntityMeta }
@@ -29,22 +29,22 @@ export function Sidebar({ title }: SidebarProps) {
   }, {})
 
   return (
-    <aside className="w-64 shrink-0 border-r bg-background flex flex-col h-full">
-      <div className="px-6 py-4 flex items-center gap-3 border-b">
+    <aside className="w-64 shrink-0 border-r bg-background flex flex-col h-full shadow-sm">
+      <div className="h-14 flex items-center gap-3 px-6 border-b">
         <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center">
-          <span className="text-primary-foreground text-sm font-semibold">i</span>
+          <span className="text-primary-foreground text-sm font-bold">i</span>
         </div>
-        <h1 className="text-lg font-semibold tracking-tight truncate">{title}</h1>
+        <h1 className="text-lg font-bold tracking-tight truncate">{title}</h1>
       </div>
-      <nav className="flex-1 overflow-y-auto py-4">
-        {Object.entries(grouped).map(([module, items], moduleIndex) => (
-          <div key={module}>
-            {moduleIndex > 0 && <Separator className="my-3" />}
+      <nav className="flex-1 overflow-y-auto py-6">
+        {Object.entries(grouped).map(([module, items], index) => (
+          <div key={module} className="mb-6">
             {module && (
-              <div className="px-6 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+              <div className="px-6 py-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">
                 {module}
               </div>
             )}
+            {index > 0 && !module && <Separator className="my-4 mx-6" />}
             <div className="space-y-1 px-3">
               {items.map((entry) => (
                 <NavLink
@@ -52,9 +52,9 @@ export function Sidebar({ title }: SidebarProps) {
                   to={`/${entry.meta.key}`}
                   className={({ isActive }) =>
                     cn(
-                      "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                      "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-all",
                       isActive
-                        ? "bg-primary text-primary-foreground"
+                        ? "bg-primary text-primary-foreground shadow-sm"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground"
                     )
                   }

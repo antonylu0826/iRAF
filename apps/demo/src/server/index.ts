@@ -1,17 +1,36 @@
 // apps/demo/src/server/index.ts
+import "dotenv/config"
 import express from "express"
 import { remultExpress } from "remult/remult-express"
+import { remult } from "remult"
+import bcrypt from "bcrypt"
 import { Customer } from "../shared/entities/Customer"
+import { iRAFUser } from "@iraf/core"
+import { getUser, createAuthRouter } from "./auth"
 
 const app = express()
+app.use(express.json())
 
-app.use(
-  remultExpress({
-    entities: [Customer],
-    // Phase 1 使用 InMemoryDataProvider（預設），資料不持久化
-    // Phase 4 會換成 SQLite/PostgreSQL
-  })
-)
+// remultExpress 必須先執行，才能建立 remult context（auth 路由需要 remult.repo()）
+const api = remultExpress({
+  entities: [Customer, iRAFUser],
+  getUser,
+  initApi: async () => {
+    const repo = remult.repo(iRAFUser)
+    const count = await repo.count()
+    if (count === 0) {
+      const username = process.env.IRAF_ADMIN_USERNAME ?? "admin"
+      const password = process.env.IRAF_ADMIN_PASSWORD ?? "admin123"
+      const passwordHash = await bcrypt.hash(password, 10)
+      await repo.insert({ username, passwordHash, displayName: username, roles: ["admin"] })
+      console.log(`[iRAF] 已建立預設管理員帳號：${username}`)
+    }
+  },
+})
+app.use(api)
+
+// Auth 路由（login / register / me）— 使用 api.withRemult 建立 remult context
+app.use(createAuthRouter(api.withRemult))
 
 app.get("/", (_req, res) => {
   res.json({ status: "iRAF Demo Server running", version: "0.1.0" })
@@ -20,5 +39,4 @@ app.get("/", (_req, res) => {
 const PORT = 3001
 app.listen(PORT, () => {
   console.log(`iRAF Demo Server started on http://localhost:${PORT}`)
-  console.log(`Customer API: http://localhost:${PORT}/api/customers`)
 })

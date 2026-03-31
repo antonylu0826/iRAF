@@ -85,4 +85,16 @@ export const iField = {
       storeFieldMeta(target, propertyKey, extractFieldMeta(options))
     }
   },
+
+  /**
+   * JSON 欄位（陣列、物件）。包裹 Remult `@Fields.json()`。
+   */
+  json(options: IFieldOptions = {}): PropertyDecorator {
+    return (target: object, propertyKey: string | symbol) => {
+      Fields.json({
+        caption: options.caption,
+      })(target, propertyKey as string)
+      storeFieldMeta(target, propertyKey, extractFieldMeta(options))
+    }
+  },
 }

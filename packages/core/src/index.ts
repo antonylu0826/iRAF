@@ -18,3 +18,6 @@ export { BaseObject } from "./base/BaseObject"
 
 // ─── Registry ─────────────────────────────────────────────────────────────────
 export { EntityRegistry } from "./registry/EntityRegistry"
+
+// ─── Built-in Entities ────────────────────────────────────────────────────────
+export { iRAFUser } from "./entities/iRAFUser"

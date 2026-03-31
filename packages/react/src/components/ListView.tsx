@@ -4,6 +4,7 @@ import { remult } from "remult"
 import { EntityRegistry } from "@iraf/core"
 import { Plus, Loader2 } from "lucide-react"
 import { Button } from "./ui/button"
+import { useAuth } from "../context/AuthContext"
 import {
   Table,
   TableBody,
@@ -17,10 +18,17 @@ interface ListViewProps {
   entityClass: new () => object
 }
 
+function hasRole(userRoles: string[], required?: string[]): boolean {
+  if (!required || required.length === 0) return true
+  return required.some((r) => userRoles.includes(r))
+}
+
 export function ListView({ entityClass }: ListViewProps) {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const meta = EntityRegistry.getMeta(entityClass as unknown as Function)
   const fieldMeta = EntityRegistry.getFieldMeta(entityClass as unknown as Function)
+  const canCreate = hasRole(user?.roles ?? [], meta?.allowedRoles?.create)
   const [rows, setRows] = useState<object[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -46,10 +54,12 @@ export function ListView({ entityClass }: ListViewProps) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">{meta.caption}</h1>
-        <Button onClick={() => navigate(`/${meta.key}/new`)} size="sm">
-          <Plus className="mr-2 h-4 w-4" />
-          新增
-        </Button>
+        {canCreate && (
+          <Button onClick={() => navigate(`/${meta.key}/new`)} size="sm">
+            <Plus className="h-4 w-4" />
+            新增
+          </Button>
+        )}
       </div>
 
       {loading && (

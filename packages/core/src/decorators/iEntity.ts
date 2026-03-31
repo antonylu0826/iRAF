@@ -30,11 +30,12 @@ export function iEntity(key: string, options: IEntityOptions) {
       module: mod,
       defaultOrder,
       allowApiCrud = true,
+      allowedRoles,
       saving: userSaving,
     } = options
 
     // 1. 儲存 iRAF metadata（不含 saving hook）
-    const irafMeta: IEntityMeta = { key, caption, icon, module: mod, defaultOrder }
+    const irafMeta: IEntityMeta = { key, caption, icon, module: mod, defaultOrder, allowedRoles }
     Reflect.defineMetadata(IRAF_ENTITY_KEY, irafMeta, target)
 
     // 2. 套用 Remult 的 @Entity，注入 saving hook 自動填寫稽核欄位
