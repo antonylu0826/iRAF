@@ -525,6 +525,19 @@ ModuleRegistry.use(SalesModule, SystemModule)
 
 ---
 
+### Phase 5c — 測試與範例模組 (Sample Module) [x]
+
+提供一個全面的 `Sample` 模組，用於測試框架的所有欄位類型、控制項與業務 Action。
+
+#### 任務清單
+- [x] 建立 `Sample` 實體定義 (Sample.ts)，涵蓋 string, number, date, boolean, password, textarea
+- [x] 實作 `SampleController` (incrementCount, toggleActive)
+- [x] 建立 `SampleModule` 並註冊至 `ModuleRegistry`
+- [x] 驗證 `iAction` 在 DetailView 的整合
+- [x] 驗證 `readOnly` 與 `validate` 在不同欄位類型的行為
+
+---
+
 ### Phase 6 — 開發體驗 [ ]
 - [ ] CLI 工具（`iraf new entity Customer`）
 - [ ] VS Code Extension（BO metadata 智能提示）（先不做，之後有需要再補）
