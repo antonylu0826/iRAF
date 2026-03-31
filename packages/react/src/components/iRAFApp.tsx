@@ -1,12 +1,13 @@
 import React from "react"
 import { BrowserRouter, Routes, Route, Navigate } from "react-router"
-import { EntityRegistry } from "@iraf/core"
+import { ModuleRegistry, EntityRegistry } from "@iraf/core"
 import { AuthProvider, useAuth } from "../context/AuthContext"
 import { AppShell } from "./AppShell"
 import { LoginPage } from "./LoginPage"
 import { Loader2 } from "lucide-react"
 import { PluginRegistry } from "../registry/PluginRegistry"
 import { initPlugins } from "../initPlugins"
+import { initModulePlugins } from "../initModulePlugins"
 
 // 框架啟動時登記內建插件（idempotent）
 initPlugins()
@@ -27,8 +28,17 @@ export function iRAFApp({ title = "iRAF App" }: iRAFAppProps) {
 
 function AppRoutes({ title }: { title: string }) {
   const { user, loading } = useAuth()
-  const entries = EntityRegistry.getAllWithMeta()
-  const firstKey = entries[0]?.meta.key
+  const modules = ModuleRegistry.getAll()
+
+  // 登記模組自帶插件（模組已 use() 後，idempotent）
+  initModulePlugins()
+  const firstModule = modules[0]
+  const firstEntityMeta = firstModule?.entities?.[0]
+    ? EntityRegistry.getMeta(firstModule.entities[0])
+    : undefined
+  const firstPath = firstModule && firstEntityMeta
+    ? `/${firstModule.key}/${firstEntityMeta.key}`
+    : undefined
 
   if (loading) {
     return (
@@ -46,26 +56,55 @@ function AppRoutes({ title }: { title: string }) {
   return (
     <Routes>
       <Route element={<AppShell title={title} />}>
-        {firstKey && <Route index element={<Navigate to={`/${firstKey}`} replace />} />}
-        {entries.map(({ entityClass, meta }) => {
-          const EntityClass = entityClass as new () => object
+        {firstPath && <Route index element={<Navigate to={firstPath} replace />} />}
 
-          const listPlugin = PluginRegistry.resolve("list-view", meta.defaultListView ?? "list")
-            ?? PluginRegistry.resolveDefault("list-view", "*")
-          const detailPlugin = PluginRegistry.resolveDefault("detail-view", "*")
+        {modules.map((mod) => (
+          <Route key={mod.key} path={mod.key}>
+            {/* 模組根路由：redirect 到第一個 entity（dashboard 預留） */}
+            {mod.entities?.[0] && (() => {
+              const firstMeta = EntityRegistry.getMeta(mod.entities![0])
+              return firstMeta
+                ? <Route index element={<Navigate to={`/${mod.key}/${firstMeta.key}`} replace />} />
+                : null
+            })()}
 
-          const ListComp = listPlugin?.component as React.ComponentType<any> | undefined
-          const DetailComp = detailPlugin?.component as React.ComponentType<any> | undefined
+            {(mod.entities ?? []).map((entityClass) => {
+              const EntityClass = entityClass as new () => object
+              const meta = EntityRegistry.getMeta(entityClass)
+              if (!meta) return null
 
-          if (!ListComp || !DetailComp) return null
+              const basePath = `/${mod.key}/${meta.key}`
 
-          return (
-            <Route key={meta.key} path={meta.key}>
-              <Route index element={<ListComp entityClass={EntityClass} viewOptions={meta.viewOptions} />} />
-              <Route path=":id" element={<DetailComp entityClass={EntityClass} viewOptions={meta.viewOptions} />} />
-            </Route>
-          )
-        })}
+              const listPlugin = PluginRegistry.resolve("list-view", meta.defaultListView ?? "list")
+                ?? PluginRegistry.resolveDefault("list-view", "*")
+              const detailPlugin = PluginRegistry.resolveDefault("detail-view", "*")
+
+              const ListComp = listPlugin?.component as React.ComponentType<any> | undefined
+              const DetailComp = detailPlugin?.component as React.ComponentType<any> | undefined
+
+              if (!ListComp || !DetailComp) return null
+
+              return (
+                <Route key={meta.key} path={meta.key}>
+                  <Route index element={
+                    <ListComp
+                      entityClass={EntityClass}
+                      basePath={basePath}
+                      viewOptions={meta.viewOptions}
+                    />
+                  } />
+                  <Route path=":id" element={
+                    <DetailComp
+                      entityClass={EntityClass}
+                      basePath={basePath}
+                      viewOptions={meta.viewOptions}
+                    />
+                  } />
+                </Route>
+              )
+            })}
+          </Route>
+        ))}
       </Route>
     </Routes>
   )

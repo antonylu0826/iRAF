@@ -7,13 +7,13 @@ import { EntityRegistry } from "../registry/EntityRegistry"
 
 // 測試用 BO（每個測試重新建立）
 function makeTestEntities() {
-  @iEntity("reg_customers", { caption: "客戶", icon: "Users", module: "銷售", allowApiCrud: true })
+  @iEntity("reg_customers", { caption: "客戶", icon: "Users", allowApiCrud: true })
   class RegCustomer extends BaseObject {
     @iField.string({ caption: "姓名", required: true })
     name = ""
   }
 
-  @iEntity("reg_products", { caption: "產品", icon: "Package", module: "庫存", allowApiCrud: true })
+  @iEntity("reg_products", { caption: "產品", icon: "Package", allowApiCrud: true })
   class RegProduct extends BaseObject {
     @iField.string({ caption: "品名" })
     productName = ""
@@ -53,7 +53,6 @@ describe("EntityRegistry", () => {
     const meta = EntityRegistry.getMeta(RegCustomer)
     expect(meta?.caption).toBe("客戶")
     expect(meta?.icon).toBe("Users")
-    expect(meta?.module).toBe("銷售")
     expect(meta?.key).toBe("reg_customers")
   })
 

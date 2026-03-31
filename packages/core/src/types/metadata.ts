@@ -46,7 +46,6 @@ export interface IEntityRoles {
 export interface IEntityOptions {
   caption: string
   icon?: string
-  module?: string
   defaultOrder?: Record<string, "asc" | "desc">
   allowApiCrud?: boolean | string[]
   allowedRoles?: IEntityRoles
@@ -62,7 +61,6 @@ export interface IEntityMeta {
   key: string
   caption: string
   icon?: string
-  module?: string
   defaultOrder?: Record<string, "asc" | "desc">
   allowedRoles?: IEntityRoles
   defaultListView?: string

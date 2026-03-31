@@ -1,7 +1,7 @@
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 import "./index.css"
-import "./shared" // trigger EntityRegistry.register(...)
+import "./modules" // trigger ModuleRegistry.use(...)
 import { iRAFApp as App } from "@iraf/react"
 
 createRoot(document.getElementById("root")!).render(

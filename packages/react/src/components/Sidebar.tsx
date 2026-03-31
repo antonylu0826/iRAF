@@ -1,6 +1,6 @@
 import React from "react"
 import { NavLink } from "react-router"
-import { EntityRegistry, type IEntityMeta } from "@iraf/core"
+import { ModuleRegistry, EntityRegistry, type IMenuItem } from "@iraf/core"
 import * as LucideIcons from "lucide-react"
 import { Separator } from "./ui/separator"
 import { cn } from "../lib/utils"
@@ -16,17 +16,27 @@ function NavIcon({ name }: { name?: string }) {
   return <Icon size={18} className="shrink-0" />
 }
 
-type NavEntry = { entityClass: Function; meta: IEntityMeta }
+function resolveMenuItem(item: IMenuItem): { caption: string; icon?: string; path: string } | null {
+  if (item.type === "separator" || item.type === "link") return null
+
+  const entityClass = item.entity
+  if (!entityClass) return null
+
+  const meta = EntityRegistry.getMeta(entityClass as Function)
+  if (!meta) return null
+
+  const moduleEntry = ModuleRegistry.findModuleByEntity(entityClass as Function)
+  if (!moduleEntry) return null
+
+  return {
+    caption: item.caption ?? meta.caption,
+    icon: item.icon ?? meta.icon,
+    path: `/${moduleEntry.key}/${meta.key}`,
+  }
+}
 
 export function Sidebar({ title }: SidebarProps) {
-  const entries = EntityRegistry.getAllWithMeta()
-
-  const grouped = entries.reduce<Record<string, NavEntry[]>>((acc, entry) => {
-    const group = entry.meta.module ?? ""
-    if (!acc[group]) acc[group] = []
-    acc[group].push(entry)
-    return acc
-  }, {})
+  const modules = ModuleRegistry.getAll()
 
   return (
     <aside className="w-64 shrink-0 border-r bg-background flex flex-col h-full shadow-sm">
@@ -37,35 +47,70 @@ export function Sidebar({ title }: SidebarProps) {
         <h1 className="text-lg font-bold tracking-tight truncate">{title}</h1>
       </div>
       <nav className="flex-1 overflow-y-auto py-6">
-        {Object.entries(grouped).map(([module, items], index) => (
-          <div key={module} className="mb-6">
-            {module && (
+        {modules.map((mod, modIndex) => {
+          const menuItems = ModuleRegistry.getMenu(mod.key)
+
+          return (
+            <div key={mod.key} className="mb-6">
+              {/* 模組標題 */}
               <div className="px-6 py-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">
-                {module}
+                {mod.caption}
               </div>
-            )}
-            {index > 0 && !module && <Separator className="my-4 mx-6" />}
-            <div className="space-y-1 px-3">
-              {items.map((entry) => (
-                <NavLink
-                  key={entry.meta.key}
-                  to={`/${entry.meta.key}`}
-                  className={({ isActive }) =>
-                    cn(
-                      "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-all",
-                      isActive
-                        ? "bg-primary text-primary-foreground shadow-sm"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+
+              {modIndex > 0 && <Separator className="my-2 mx-6" />}
+
+              <div className="space-y-1 px-3">
+                {menuItems.map((item, itemIndex) => {
+                  if (item.type === "separator") {
+                    return <Separator key={`sep-${itemIndex}`} className="my-2 mx-3" />
+                  }
+
+                  if (item.type === "link") {
+                    return (
+                      <NavLink
+                        key={item.path ?? itemIndex}
+                        to={item.path ?? "#"}
+                        className={({ isActive }) =>
+                          cn(
+                            "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-all",
+                            isActive
+                              ? "bg-primary text-primary-foreground shadow-sm"
+                              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                          )
+                        }
+                      >
+                        <NavIcon name={item.icon} />
+                        <span className="truncate">{item.caption}</span>
+                      </NavLink>
                     )
                   }
-                >
-                  <NavIcon name={entry.meta.icon} />
-                  <span className="truncate">{entry.meta.caption}</span>
-                </NavLink>
-              ))}
+
+                  // type: "entity"（預設）
+                  const resolved = resolveMenuItem(item)
+                  if (!resolved) return null
+
+                  return (
+                    <NavLink
+                      key={resolved.path}
+                      to={resolved.path}
+                      className={({ isActive }) =>
+                        cn(
+                          "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-all",
+                          isActive
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                        )
+                      }
+                    >
+                      <NavIcon name={resolved.icon} />
+                      <span className="truncate">{resolved.caption}</span>
+                    </NavLink>
+                  )
+                })}
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </nav>
     </aside>
   )

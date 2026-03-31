@@ -10,7 +10,6 @@ import { BaseObject } from "../base/BaseObject"
 @iEntity("iraf-users", {
   caption: "使用者",
   icon: "User",
-  module: "系統管理",
   allowApiCrud: ["admin"],
   allowedRoles: {
     read: ["admin"],

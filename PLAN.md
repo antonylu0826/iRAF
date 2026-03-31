@@ -36,20 +36,22 @@
 ```
 my-app/
 ├── src/
-│   ├── shared/               # 前後端共用
-│   │   ├── base/
-│   │   │   └── BaseObject.ts       # 所有 BO 的基底類別
-│   │   ├── entities/               # 業務實體（BO 定義）
-│   │   │   ├── Customer.ts
-│   │   │   └── Order.ts
-│   │   └── index.ts                # EntityRegistry.register(...)
+│   ├── modules/                        # 模組（每個子目錄一個功能模組）
+│   │   ├── sales/
+│   │   │   ├── entities/
+│   │   │   │   ├── Customer.ts         # BO 定義
+│   │   │   │   └── Order.ts
+│   │   │   ├── controllers/
+│   │   │   │   └── OrderController.ts  # 業務邏輯
+│   │   │   ├── controls/               # 模組自帶的 Control 插件（選用）
+│   │   │   │   └── CurrencyInput.tsx
+│   │   │   └── index.ts               # defineModule(...)
+│   │   ├── system/
+│   │   │   └── index.ts               # defineModule(...)（內建 iRAFUser）
+│   │   └── index.ts                   # ModuleRegistry.use(SalesModule, SystemModule)
 │   ├── server/
-│   │   └── index.ts                # iRAF server 初始化
-│   └── frontend/
-│       ├── main.tsx                # iRAFApp bootstrap
-│       ├── overrides/              # 自訂 component（選用）
-│       │   └── CustomerForm.tsx
-│       └── modules/                # 模組擴充（選用）
+│   │   └── index.ts                   # iRAF server 初始化
+│   └── main.tsx                       # iRAFApp bootstrap
 └── package.json
 ```
 
@@ -384,20 +386,151 @@ interface IDetailViewProps {
 
 ---
 
-### Phase 5b — 模組系統（Module System） [ ]
-- [ ] `@iModule` decorator（caption / icon / description / menu / dashboard / requires）
-- [ ] `EntityRegistry.use(SalesModule)` 取代 `register()`
-- [ ] Menu 定義（明確指定選單結構與順序）
-- [ ] Dashboard 機制（`/sales` 路由掛載自訂 component）
-- [ ] 模組間硬依賴（缺少 requires 的模組時啟動報錯）
-- [ ] 模組也可打包自己的 View / Control 插件
+### Phase 5b — 模組系統（Module System） [x]
+
+模組（Module）是功能的封裝單位，整合實體、控制器、插件、選單結構。
+取代散落式的 `EntityRegistry.register()` + `@iEntity({ module })` 寫法。
+
+#### 架構設計
+
+```ts
+// ─── Module 定義 ──────────────────────────────────────────────────────────────
+import { defineModule } from "@iraf/core"
+
+export const SalesModule = defineModule({
+  key: "sales",
+  caption: "銷售",
+  icon: "ShoppingCart",
+  description: "銷售管理模組",
+  entities: [Customer, Order],
+  controllers: [CustomerController],
+  menu: [                                 // 選用：不指定則自動從 entities 生成
+    { entity: Customer, order: 1 },
+    { entity: Order, order: 2 },
+    { type: "separator" },
+    { type: "link", caption: "報表", icon: "BarChart", path: "/sales/reports" },
+  ],
+  dashboard: SalesDashboard,              // 預留：React component，掛載 /sales
+  requires: [],                           // 硬依賴：缺少時 use() 拋錯
+  plugins: [                              // 模組自帶的插件
+    { category: "control", plugin: { name: "currency", caption: "貨幣", component: CurrencyInput } },
+  ],
+})
+
+// ─── 使用方式 ──────────────────────────────────────────────────────────────────
+import { ModuleRegistry } from "@iraf/core"
+ModuleRegistry.use(SalesModule, SystemModule)
+```
+
+#### 型別定義
+
+```ts
+// ─── IMenuItem ────────────────────────────────────────────────────────────────
+interface IMenuItem {
+  type?: "entity" | "link" | "separator"
+  entity?: Function            // type: "entity"（預設）
+  caption?: string             // 覆寫 entity caption
+  icon?: string                // 覆寫 entity icon
+  path?: string                // type: "link" 的目標路徑
+  order?: number
+}
+
+// ─── IModulePlugin ────────────────────────────────────────────────────────────
+interface IModulePlugin {
+  category: string
+  plugin: { name: string; caption: string; icon?: string; component: unknown }
+}
+
+// ─── IModuleDef ───────────────────────────────────────────────────────────────
+interface IModuleDef {
+  key: string
+  caption: string
+  icon?: string
+  description?: string
+  entities?: Function[]
+  controllers?: Function[]
+  menu?: IMenuItem[]
+  dashboard?: unknown          // React.ComponentType（core 不依賴 React）
+  requires?: string[]
+  plugins?: IModulePlugin[]
+}
+```
+
+#### ModuleRegistry
+
+```ts
+class ModuleRegistry {
+  static use(...modules: IModuleDef[]): void   // 登記（驗依賴→登記 entities/controllers→儲存）
+  static getAll(): IModuleDef[]                // 所有模組（按 use 順序）
+  static get(key: string): IModuleDef          // 取得單一模組
+  static getMenu(key: string): IMenuItem[]     // menu 或自動生成
+  static clear(): void                         // 測試用
+}
+```
+
+`use()` 內部自動呼叫 `EntityRegistry.register()` 登記實體。
+模組的 `plugins` 由 packages/react 的 `initModulePlugins()` 處理（core 不依賴 React）。
+
+#### 路由結構（巢狀）
+
+```
+/sales                → SalesDashboard（或 redirect 到第一個 entity）
+/sales/customers      → Customer ListView
+/sales/customers/:id  → Customer DetailView
+/system               → redirect 到 /system/iraf-users
+/system/iraf-users    → iRAFUser ListView
+```
+
+#### 棄用 `@iEntity.module`
+
+`IEntityOptions` / `IEntityMeta` 移除 `module` 欄位。
+模組歸屬改由 `defineModule({ entities: [...] })` 決定。
+
+#### Demo 轉換
+
+```ts
+// apps/demo/src/modules/SalesModule.ts
+export const SalesModule = defineModule({
+  key: "sales",
+  caption: "銷售",
+  icon: "ShoppingCart",
+  entities: [Customer],
+  controllers: [CustomerController],
+})
+
+// apps/demo/src/modules/SystemModule.ts
+export const SystemModule = defineModule({
+  key: "system",
+  caption: "系統管理",
+  icon: "Settings",
+  entities: [iRAFUser],
+})
+
+// apps/demo/src/modules/index.ts
+ModuleRegistry.use(SalesModule, SystemModule)
+```
+
+#### 任務清單
+- [x] 定義 `IModuleDef` / `IMenuItem` / `IModulePlugin` 型別（packages/core）
+- [x] 實作 `defineModule()` 函式（packages/core）
+- [x] 實作 `ModuleRegistry`（use / getAll / get / getMenu / clear）
+- [x] 棄用 `IEntityOptions.module` / `IEntityMeta.module`（packages/core）
+- [x] `Sidebar` 改讀 `ModuleRegistry` 生成選單（packages/react）
+- [x] `iRAFApp` 路由改為巢狀 `/{module.key}/{entity.key}`（packages/react）
+- [x] `DetailView` / `ListView` 路徑修正（返回、新增等按鈕）
+- [x] packages/react `initModulePlugins()` 處理模組自帶插件
+- [x] Demo 目錄重組：`shared/` → `modules/sales/` + `modules/system/`
+- [x] Demo 重做：建立 SalesModule / SystemModule，移除 `EntityRegistry.register()`
+- [x] 測試：ModuleRegistry use / getAll / getMenu / 依賴檢查 / 重複報錯
 
 ---
 
 ### Phase 6 — 開發體驗 [ ]
 - [ ] CLI 工具（`iraf new entity Customer`）
-- [ ] VS Code Extension（BO metadata 智能提示）
+- [ ] VS Code Extension（BO metadata 智能提示）（先不做，之後有需要再補）
 - [ ] AI Agent prompt templates（讓 agent 能按框架慣例生成 BO）
+- [ ] 建立 iRAF 使用文件庫
+- [ ] 建立能使用 iRAF 文件庫並進行開發的 MCP 工具給各家 ageent 使用
 
 ### Phase 7 — 進階安全與用戶體驗 [ ]
 - [ ] 使用者管理介面優化（角色指派與狀態管理）

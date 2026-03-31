@@ -8,7 +8,6 @@ describe("iEntity", () => {
     @iEntity("test_customers", {
       caption: "客戶",
       icon: "Users",
-      module: "銷售",
       allowApiCrud: true,
     })
     class TestCustomer {
@@ -23,7 +22,6 @@ describe("iEntity", () => {
     @iEntity("test_products", {
       caption: "產品",
       icon: "Package",
-      module: "庫存",
       allowApiCrud: true,
     })
     class TestProduct {
@@ -31,7 +29,7 @@ describe("iEntity", () => {
     }
     const meta: IEntityMeta = Reflect.getMetadata(IRAF_ENTITY_KEY, TestProduct)
     expect(meta.icon).toBe("Package")
-    expect(meta.module).toBe("庫存")
+    expect((meta as any).module).toBeUndefined()
   })
 
   it("stores entity key in iRAF entity metadata", () => {
