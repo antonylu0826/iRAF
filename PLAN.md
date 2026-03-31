@@ -263,10 +263,74 @@ export class OrderController {
 - [x] 業務驗證規則引擎（前後端共享）
 - [x] Conditional Appearance（依數據狀態控制欄位唯讀/隱藏）
 
-### Phase 5 — 模組系統 [ ]
-- [ ] 模組 (Module) 定義機制
-- [ ] 模組級 UI 擴充（自訂 Dashboard、自訂視圖）
-- [ ] 模組間依賴管理
+### Phase 5a — 插件系統（Plugin Registry） [ ]
+
+插件分為兩大類，各自有獨立的 Registry，現有的 ListView / DetailView 也納入此機制。
+
+#### View 插件 — 實體的呈現方式
+| 名稱 | Component | 說明 |
+|------|-----------|------|
+| `"list"` | `ListView` | 預設表格清單（現有） |
+| `"detail"` | `DetailView` | 預設表單（現有） |
+| `"kanban"` | `KanbanListView` | 看板（擴充） |
+| `"calendar"` | `CalendarView` | 行事曆（擴充） |
+| `"tree"` | `TreeListView` | 樹狀清單（擴充） |
+
+```ts
+// 框架啟動時自動登記內建 View
+ViewRegistry.register("list",   ListView)
+ViewRegistry.register("detail", DetailView)
+
+// 外部模組擴充
+ViewRegistry.register("kanban", KanbanListView)
+
+// @iEntity 指定 defaultView
+@iEntity("tasks", { caption: "任務", defaultView: "kanban" })
+```
+
+#### Control 插件 — 欄位的編輯控制項
+| 名稱 | Component | 對應 iField 類型 |
+|------|-----------|-----------------|
+| `"text"` | `TextInput` | string（預設） |
+| `"number"` | `NumberInput` | number（預設） |
+| `"date"` | `DatePicker` | date（預設） |
+| `"datetime"` | `DateTimePicker` | date |
+| `"time"` | `TimePicker` | date |
+| `"boolean"` | `Checkbox` | boolean（預設） |
+| `"textarea"` | `Textarea` | string |
+| `"password"` | `PasswordInput` | string（擴充） |
+| `"richtext"` | `RichTextEditor` | string（擴充） |
+| `"spreadsheet"` | `SpreadsheetInput` | json（擴充） |
+
+```ts
+// @iField 使用 control 字串指定控制項
+@iField.string({ caption: "描述", control: "textarea" })
+@iField.string({ caption: "密碼", control: "password" })
+@iField.string({ caption: "內容", control: "richtext" })
+```
+
+#### 任務清單
+- [ ] 定義 `ViewRegistry` + `ControlRegistry`（含 register / resolve）
+- [ ] 現有 `ListView` / `DetailView` 納入 `ViewRegistry`
+- [ ] 現有 input 類型納入 `ControlRegistry`（text / number / date / boolean）
+- [ ] `IEntityOptions` 新增 `defaultView` 欄位
+- [ ] `IFieldOptions` 新增 `control` 字串欄位（取代 `inputComponent`）
+- [ ] `DetailView` 改由 `ControlRegistry.resolve(control)` 動態載入控制項
+- [ ] iRAFApp 路由改由 `ViewRegistry.resolve(defaultView)` 決定清單頁元件
+- [ ] 新增 `textarea` / `password` 兩個內建 Control（常用，納入核心）
+- [ ] Demo 示範：Customer `description` 欄位使用 `"textarea"`
+
+---
+
+### Phase 5b — 模組系統（Module System） [ ]
+- [ ] `@iModule` decorator（caption / icon / description / menu / dashboard / requires）
+- [ ] `EntityRegistry.use(SalesModule)` 取代 `register()`
+- [ ] Menu 定義（明確指定選單結構與順序）
+- [ ] Dashboard 機制（`/sales` 路由掛載自訂 component）
+- [ ] 模組間硬依賴（缺少 requires 的模組時啟動報錯）
+- [ ] 模組也可打包自己的 View / Control 插件
+
+---
 
 ### Phase 6 — 開發體驗 [ ]
 - [ ] CLI 工具（`iraf new entity Customer`）
