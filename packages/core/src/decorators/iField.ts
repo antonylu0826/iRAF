@@ -4,7 +4,7 @@ import { IRAF_FIELD_KEY, type IFieldMeta, type IFieldOptions } from "../types/me
 
 // ─── 內部工具函式 ──────────────────────────────────────────────────────────────
 
-/** 從 IFieldOptions 中取出 iRAF UI hints（排除 required） */
+/** 從 IFieldOptions 中取出 iRAF UI hints */
 function extractFieldMeta(options: IFieldOptions): IFieldMeta {
   const meta: IFieldMeta = {}
   if (options.caption !== undefined) meta.caption = options.caption
@@ -14,6 +14,8 @@ function extractFieldMeta(options: IFieldOptions): IFieldMeta {
   if (options.order !== undefined) meta.order = options.order
   if (options.required !== undefined) meta.required = options.required
   if (options.displayFormat !== undefined) meta.displayFormat = options.displayFormat
+  if (options.validate !== undefined) meta.validate = options.validate
+  if (options.auditField !== undefined) meta.auditField = options.auditField
   return meta
 }
 
@@ -30,19 +32,32 @@ function storeFieldMeta(
   Reflect.defineMetadata(IRAF_FIELD_KEY, existing, ctor)
 }
 
+/** 將 validate 函式轉換為 Remult validator */
+function buildRemultValidators(options: IFieldOptions) {
+  const validators: any[] = []
+  if (options.required) validators.push(Validators.required)
+  if (options.validate) {
+    const userValidate = options.validate
+    validators.push((entity: any, fieldRef: any) => {
+      const result = userValidate(fieldRef.value, entity)
+      if (result) throw result
+    })
+  }
+  if (validators.length === 0) return undefined
+  return validators.length === 1 ? validators[0] : validators
+}
+
 // ─── @iField namespace ────────────────────────────────────────────────────────
 
 export const iField = {
   /**
    * 字串欄位。包裹 Remult `@Fields.string()`。
-   * @param options caption（傳給 Remult）、required（傳給 Remult validator）
-   *                group/readOnly/hidden/order/displayFormat（iRAF UI metadata）
    */
   string(options: IFieldOptions = {}): PropertyDecorator {
     return (target: object, propertyKey: string | symbol) => {
       Fields.string({
         caption: options.caption,
-        ...(options.required ? { validate: Validators.required } : {}),
+        validate: buildRemultValidators(options),
       })(target, propertyKey as string)
       storeFieldMeta(target, propertyKey, extractFieldMeta(options))
     }
@@ -55,7 +70,7 @@ export const iField = {
     return (target: object, propertyKey: string | symbol) => {
       Fields.number({
         caption: options.caption,
-        ...(options.required ? { validate: Validators.required } : {}),
+        validate: buildRemultValidators(options),
       })(target, propertyKey as string)
       storeFieldMeta(target, propertyKey, extractFieldMeta(options))
     }
@@ -68,7 +83,7 @@ export const iField = {
     return (target: object, propertyKey: string | symbol) => {
       Fields.date({
         caption: options.caption,
-        ...(options.required ? { validate: Validators.required } : {}),
+        validate: buildRemultValidators(options),
       })(target, propertyKey as string)
       storeFieldMeta(target, propertyKey, extractFieldMeta(options))
     }

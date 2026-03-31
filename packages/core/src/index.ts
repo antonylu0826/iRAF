@@ -6,12 +6,14 @@ import "reflect-metadata"
 export const IRAF_VERSION = "0.1.0"
 
 // ─── 類型定義 ──────────────────────────────────────────────────────────────────
-export type { IEntityOptions, IEntityMeta, IFieldOptions, IFieldMeta } from "./types/metadata"
-export { IRAF_ENTITY_KEY, IRAF_FIELD_KEY } from "./types/metadata"
+export type { IEntityOptions, IEntityMeta, IFieldOptions, IFieldMeta, IActionMeta } from "./types/metadata"
+export { IRAF_ENTITY_KEY, IRAF_FIELD_KEY, IRAF_ACTION_KEY, IRAF_CONTROLLER_KEY } from "./types/metadata"
 
 // ─── Decorators ───────────────────────────────────────────────────────────────
 export { iField } from "./decorators/iField"
 export { iEntity } from "./decorators/iEntity"
+export { iAction } from "./decorators/iAction"
+export { iController } from "./decorators/iController"
 
 // ─── Base ─────────────────────────────────────────────────────────────────────
 export { BaseObject } from "./base/BaseObject"

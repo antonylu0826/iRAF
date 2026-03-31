@@ -23,15 +23,15 @@ export abstract class BaseObject {
   @Fields.cuid()
   id = ""
 
-  @iField.date({ caption: "建立時間", readOnly: true, hidden: true })
+  @iField.date({ caption: "建立時間", readOnly: true, hidden: true, auditField: true })
   createdAt?: Date
 
-  @iField.date({ caption: "更新時間", readOnly: true, hidden: true })
+  @iField.date({ caption: "更新時間", readOnly: true, hidden: true, auditField: true })
   updatedAt?: Date
 
-  @iField.string({ caption: "建立者", readOnly: true, hidden: true })
+  @iField.string({ caption: "建立者", readOnly: true, hidden: true, auditField: true })
   createdBy = ""
 
-  @iField.string({ caption: "更新者", readOnly: true, hidden: true })
+  @iField.string({ caption: "更新者", readOnly: true, hidden: true, auditField: true })
   updatedBy = ""
 }

@@ -1,4 +1,12 @@
-import { IRAF_ENTITY_KEY, IRAF_FIELD_KEY, type IEntityMeta, type IFieldMeta } from "../types/metadata"
+import {
+  IRAF_ENTITY_KEY,
+  IRAF_FIELD_KEY,
+  IRAF_ACTION_KEY,
+  IRAF_CONTROLLER_KEY,
+  type IEntityMeta,
+  type IFieldMeta,
+  type IActionMeta,
+} from "../types/metadata"
 
 /**
  * EntityRegistry — iRAF 實體登記簿。
@@ -16,6 +24,14 @@ import { IRAF_ENTITY_KEY, IRAF_FIELD_KEY, type IEntityMeta, type IFieldMeta } fr
  */
 export class EntityRegistry {
   private static _entities: Function[] = []
+  private static _controllers: Function[] = []
+
+  /** 由 @iController 呼叫，直接登記 controller（不依賴 _entities）。 */
+  static registerController(ctrl: Function): void {
+    if (!this._controllers.includes(ctrl)) {
+      this._controllers.push(ctrl)
+    }
+  }
 
   /** 登記一或多個 BO。重複登記同一個 class 會被忽略。 */
   static register(...entities: Function[]): void {
@@ -57,8 +73,38 @@ export class EntityRegistry {
     return Reflect.getOwnMetadata(IRAF_FIELD_KEY, entityClass) ?? {}
   }
 
+  /**
+   * 取得指定 BO 所有關聯 Controller 的 @iAction 列表。
+   * 供 DetailView 渲染 Action Bar 使用。
+   */
+  static getActions(
+    entityClass: Function
+  ): Array<{ controllerClass: Function; meta: IActionMeta }> {
+    const controllers: Function[] =
+      Reflect.getOwnMetadata(IRAF_CONTROLLER_KEY, entityClass) ?? []
+    const actions: Array<{ controllerClass: Function; meta: IActionMeta }> = []
+    for (const ctrl of controllers) {
+      const metas: IActionMeta[] =
+        Reflect.getOwnMetadata(IRAF_ACTION_KEY, ctrl) ?? []
+      for (const meta of metas) {
+        actions.push({ controllerClass: ctrl, meta })
+      }
+    }
+    return actions
+  }
+
+  /**
+   * 取得所有已關聯的 Controller class。
+   * 供 remultExpress({ controllers: EntityRegistry.getAllControllers() }) 使用。
+   * 由 @iController 直接維護，不依賴 _entities 是否已填入。
+   */
+  static getAllControllers(): Function[] {
+    return [...this._controllers]
+  }
+
   /** 清除所有登記（主要用於測試）。 */
   static clear(): void {
     this._entities = []
+    this._controllers = []
   }
 }

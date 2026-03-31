@@ -5,8 +5,9 @@ import { remultExpress } from "remult/remult-express"
 import { remult } from "remult"
 import bcrypt from "bcrypt"
 import { Customer } from "../shared/entities/Customer"
-import { iRAFUser } from "@iraf/core"
+import { iRAFUser, EntityRegistry } from "@iraf/core"
 import { getUser, createAuthRouter } from "./auth"
+import "../shared/controllers/CustomerController" // 觸發 @iController 裝飾器
 
 const app = express()
 app.use(express.json())
@@ -14,6 +15,7 @@ app.use(express.json())
 // remultExpress 必須先執行，才能建立 remult context（auth 路由需要 remult.repo()）
 const api = remultExpress({
   entities: [Customer, iRAFUser],
+  controllers: EntityRegistry.getAllControllers() as any[],
   getUser,
   initApi: async () => {
     const repo = remult.repo(iRAFUser)
