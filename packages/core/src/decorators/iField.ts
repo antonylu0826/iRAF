@@ -16,6 +16,7 @@ function extractFieldMeta(options: IFieldOptions): IFieldMeta {
   if (options.displayFormat !== undefined) meta.displayFormat = options.displayFormat
   if (options.validate !== undefined) meta.validate = options.validate
   if (options.auditField !== undefined) meta.auditField = options.auditField
+  if (options.control !== undefined) meta.control = options.control
   return meta
 }
 
@@ -59,7 +60,7 @@ export const iField = {
         caption: options.caption,
         validate: buildRemultValidators(options),
       })(target, propertyKey as string)
-      storeFieldMeta(target, propertyKey, extractFieldMeta(options))
+      storeFieldMeta(target, propertyKey, { ...extractFieldMeta(options), _type: "string" })
     }
   },
 
@@ -72,7 +73,7 @@ export const iField = {
         caption: options.caption,
         validate: buildRemultValidators(options),
       })(target, propertyKey as string)
-      storeFieldMeta(target, propertyKey, extractFieldMeta(options))
+      storeFieldMeta(target, propertyKey, { ...extractFieldMeta(options), _type: "number" })
     }
   },
 
@@ -85,7 +86,7 @@ export const iField = {
         caption: options.caption,
         validate: buildRemultValidators(options),
       })(target, propertyKey as string)
-      storeFieldMeta(target, propertyKey, extractFieldMeta(options))
+      storeFieldMeta(target, propertyKey, { ...extractFieldMeta(options), _type: "date" })
     }
   },
 
@@ -97,7 +98,7 @@ export const iField = {
       Fields.boolean({
         caption: options.caption,
       })(target, propertyKey as string)
-      storeFieldMeta(target, propertyKey, extractFieldMeta(options))
+      storeFieldMeta(target, propertyKey, { ...extractFieldMeta(options), _type: "boolean" })
     }
   },
 
@@ -109,7 +110,7 @@ export const iField = {
       Fields.json({
         caption: options.caption,
       })(target, propertyKey as string)
-      storeFieldMeta(target, propertyKey, extractFieldMeta(options))
+      storeFieldMeta(target, propertyKey, { ...extractFieldMeta(options), _type: "json" })
     }
   },
 }

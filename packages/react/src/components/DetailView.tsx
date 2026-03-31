@@ -5,9 +5,9 @@ import { EntityRegistry, type IActionMeta } from "@iraf/core"
 import { ChevronLeft, Save, Loader2, X } from "lucide-react"
 import * as LucideIcons from "lucide-react"
 import { Button } from "./ui/button"
-import { Input } from "./ui/input"
 import { Separator } from "./ui/separator"
 import { useAuth } from "../context/AuthContext"
+import { PluginRegistry } from "../registry/PluginRegistry"
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -214,20 +214,33 @@ export function DetailView({ entityClass }: { entityClass: new () => object }) {
                   .map((field: any) => {
                     const isReadOnly = evalBool(field.readOnly, item)
                     return (
-                      <div key={field.key} className="space-y-1.5">
+                      <div key={field.key} className={`space-y-1.5 ${field._type === "boolean" ? "" : ""}`}>
                         <label className="text-[11px] font-bold leading-none text-muted-foreground uppercase tracking-tight">
                           {field.caption ?? field.key}
                           {field.required && <span className="text-destructive ml-1">*</span>}
                         </label>
-                        <Input
-                          disabled={!canSave || isReadOnly}
-                          value={item[field.key] ?? ""}
-                          onChange={(e) => {
-                            setItem({ ...item, [field.key]: e.target.value })
-                            if (errors[field.key]) setErrors({ ...errors, [field.key]: "" })
-                          }}
-                          className={`h-9 bg-background focus-visible:ring-1 focus-visible:ring-primary shadow-none ${errors[field.key] ? "border-destructive" : ""}`}
-                        />
+                        {(() => {
+                          const controlName = field.control ?? undefined
+                          const plugin = controlName
+                            ? PluginRegistry.resolve("control", controlName)
+                            : PluginRegistry.resolveDefault("control", field._type ?? "string")
+                          const ControlComponent = plugin?.component as React.ComponentType<any> | undefined
+                          if (!ControlComponent) return <span className="text-xs text-muted-foreground">— 無 control —</span>
+                          return (
+                            <div className={errors[field.key] ? "ring-1 ring-destructive rounded-lg" : ""}>
+                              <ControlComponent
+                                value={item[field.key]}
+                                onChange={(v: any) => {
+                                  setItem({ ...item, [field.key]: v })
+                                  if (errors[field.key]) setErrors({ ...errors, [field.key]: "" })
+                                }}
+                                disabled={!canSave || isReadOnly}
+                                field={field}
+                                entity={item}
+                              />
+                            </div>
+                          )
+                        })()}
                         {errors[field.key] && (
                           <p className="text-xs text-destructive">{errors[field.key]}</p>
                         )}
