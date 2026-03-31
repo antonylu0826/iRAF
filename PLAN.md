@@ -252,10 +252,10 @@ export class OrderController {
 - [x] DetailView 自動渲染（含表單分組）
 - [x] 三層覆寫機制
 
-### Phase 3 — 安全層 [ ]
-- [ ] RBAC 模型（User / Role / Permission）
-- [ ] 前後端雙層權限控制
-- [ ] 登入 / Session 管理
+### Phase 3 — 安全層 [x]
+- [x] RBAC 模型（User / Role / Permission）
+- [x] 前後端雙層權限控制
+- [x] 登入 / Session 管理
 
 ### Phase 4 — 業務功能層 [ ]
 - [ ] `@iAction` / Controller 整合
