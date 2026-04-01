@@ -25,6 +25,8 @@ export interface IFieldMeta {
   auditField?: boolean
   /** 指定此欄位使用的 control 插件名稱（e.g. "textarea", "password"）。未指定時由 field type 決定預設 control */
   control?: string
+  /** 輸入框的佔位文字 */
+  placeholder?: string
   /** iRAF 內部：紀錄 field 的基礎型別（"string" | "number" | "date" | "boolean" | "json"），供 PluginRegistry 解析預設 control */
   _type?: string
 }
