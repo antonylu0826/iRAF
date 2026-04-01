@@ -1,12 +1,13 @@
-// apps/demo/src/server/index.ts
+// app/src/server/index.ts
 import "dotenv/config"
 import express from "express"
 import { remultExpress } from "remult/remult-express"
 import { remult } from "remult"
 import bcrypt from "bcrypt"
-import { iRAFUser, EntityRegistry } from "@iraf/core"
+import { EntityRegistry } from "@iraf/core"
+import { iRAFUser } from "@iraf/module-system"
 import { getUser, createAuthRouter } from "./auth"
-import "../modules" // 觸發 ModuleRegistry.use(...)
+import "../features" // 觸發 ModuleRegistry.use(...)
 
 const app = express()
 app.use(express.json())

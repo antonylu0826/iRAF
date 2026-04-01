@@ -1,10 +1,10 @@
-// apps/demo/src/modules/index.ts
+// app/src/features/index.ts
 // 登記所有模組 — 匯入此檔案即觸發 ModuleRegistry.use()
 import { ModuleRegistry } from "@iraf/core"
+import { SystemModule } from "@iraf/module-system"
 import { SalesModule } from "./sales"
-import { SystemModule } from "./system"
 import { SampleModule } from "./sample"
 
-ModuleRegistry.use(SalesModule, SystemModule, SampleModule)
+ModuleRegistry.use(SystemModule, SalesModule, SampleModule)
 
-export { SalesModule, SystemModule, SampleModule }
+export { SystemModule, SalesModule, SampleModule }
