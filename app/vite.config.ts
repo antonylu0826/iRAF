@@ -10,6 +10,7 @@ export default defineConfig({
       "@iraf/react": path.resolve(__dirname, "../packages/react/src/index.ts"),
       "@iraf/plugin-system": path.resolve(__dirname, "../plugins/system/src/index.ts"),
       "@iraf/module-system": path.resolve(__dirname, "../modules/system/src/index.ts"),
+      "@iraf/module-sample": path.resolve(__dirname, "../modules/sample/src/index.ts"),
     },
   },
   server: {

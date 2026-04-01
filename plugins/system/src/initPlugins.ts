@@ -17,6 +17,7 @@ import {
   TextareaInput,
   PasswordInput,
 } from "./controls/builtins"
+import { RolesInput } from "./controls/RolesInput"
 
 let _initialized = false
 
@@ -47,6 +48,7 @@ export function initPlugins(): void {
   PluginRegistry.register("control", { name: "boolean",  caption: "勾選",     component: Checkbox      })
   PluginRegistry.register("control", { name: "textarea", caption: "多行文字", component: TextareaInput })
   PluginRegistry.register("control", { name: "password", caption: "密碼",     component: PasswordInput })
+  PluginRegistry.register("control", { name: "roles",    caption: "角色選擇",  component: RolesInput    })
 
   // ─── field type → default control ───────────────────────────────────────────
   PluginRegistry.setDefault("control", "string",  "text")

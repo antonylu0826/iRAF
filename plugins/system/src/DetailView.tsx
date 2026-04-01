@@ -1,12 +1,22 @@
 import React, { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router"
 import { remult } from "remult"
-import { EntityRegistry, type IActionMeta } from "@iraf/core"
+import { EntityRegistry, type IActionMeta, type RoleCheck, type IUserContext } from "@iraf/core"
 import { ChevronLeft, Save, Loader2, X } from "lucide-react"
 import * as LucideIcons from "lucide-react"
 import { Button, Separator, useAuth, PluginRegistry } from "@iraf/react"
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
+
+function evalRoleCheck(
+  check: RoleCheck | undefined,
+  user: IUserContext | null | undefined,
+  row?: any
+): boolean {
+  if (!check) return true
+  if (typeof check === "function") return check(user ?? undefined, row)
+  return check.some((r) => (user?.roles ?? []).includes(r))
+}
 
 function hasRole(userRoles: string[], required?: string[]): boolean {
   if (!required || required.length === 0) return true
@@ -41,12 +51,13 @@ export function DetailView({
   const actions = EntityRegistry.getActions(entityClass as unknown as Function)
 
   const isNew = id === "new"
-  const canSave = hasRole(
-    user?.roles ?? [],
-    isNew ? meta?.allowedRoles?.create : meta?.allowedRoles?.update
+  const [item, setItem] = useState<Record<string, any>>({})
+  const canSave = evalRoleCheck(
+    isNew ? meta?.allowedRoles?.create : meta?.allowedRoles?.update,
+    user,
+    item
   )
 
-  const [item, setItem] = useState<Record<string, any>>({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
@@ -67,7 +78,7 @@ export function DetailView({
         if (data) setItem(data as any)
         else setGlobalError("資料不存在")
       })
-      .catch((e) => setGlobalError(String(e)))
+      .catch((e: any) => setGlobalError(e?.message ?? String(e)))
       .finally(() => setLoading(false))
   }, [entityClass, id, isNew])
 
@@ -98,8 +109,8 @@ export function DetailView({
       } else {
         await repo.save(item)
       }
-    } catch (e) {
-      setGlobalError(String(e))
+    } catch (e: any) {
+      setGlobalError(e?.message ?? String(e))
     } finally {
       setSaving(false)
     }
@@ -216,7 +227,9 @@ export function DetailView({
                 {fields
                   .sort((a: any, b: any) => (a.order ?? 999) - (b.order ?? 999))
                   .map((field: any) => {
-                    const isReadOnly = evalBool(field.readOnly, item)
+                    const isReadOnly =
+                      evalBool(field.readOnly, item) ||
+                      (field.writeRoles && !hasRole(user?.roles ?? [], field.writeRoles))
                     return (
                       <div key={field.key} className="space-y-1.5">
                         <label className="text-[11px] font-bold leading-none text-muted-foreground uppercase tracking-tight">

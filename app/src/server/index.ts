@@ -24,7 +24,7 @@ const api = remultExpress({
       const username = process.env.IRAF_ADMIN_USERNAME ?? "admin"
       const password = process.env.IRAF_ADMIN_PASSWORD ?? "admin123"
       const passwordHash = await bcrypt.hash(password, 10)
-      await repo.insert({ username, passwordHash, displayName: username, roles: ["admin"] })
+      await repo.insert({ username, passwordHash, displayName: username, roles: ["admins"] })
       console.log(`[iRAF] 已建立預設管理員帳號：${username}`)
     }
   },

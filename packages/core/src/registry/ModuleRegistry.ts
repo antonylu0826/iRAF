@@ -1,6 +1,9 @@
 import { EntityRegistry } from "./EntityRegistry"
 import type { IModuleDef, IModuleOptions, IMenuItem } from "../types/module"
 
+/** 框架預設系統角色 */
+export const SYSTEM_ROLES: readonly string[] = ["admins", "users"]
+
 /**
  * defineModule — 宣告一個 iRAF 功能模組。
  *
@@ -70,6 +73,13 @@ export class ModuleRegistry {
       if (mod.entities && mod.entities.length > 0) {
         EntityRegistry.register(...mod.entities)
       }
+
+      // 自動登記 controllers（補充未用 @iController 自動登記的情況）
+      if (mod.controllers && mod.controllers.length > 0) {
+        for (const ctrl of mod.controllers) {
+          EntityRegistry.registerController(ctrl)
+        }
+      }
     }
   }
 
@@ -111,6 +121,20 @@ export class ModuleRegistry {
     return this._modules.find((mod) =>
       mod.entities?.includes(entityClass)
     )
+  }
+
+  /**
+   * 聚合所有角色：系統預設角色 + 各模組宣告的 roles。
+   * 去重後回傳。
+   */
+  static getAllRoles(): string[] {
+    const all = new Set<string>(SYSTEM_ROLES)
+    for (const mod of this._modules) {
+      if (mod.roles) {
+        for (const r of mod.roles) all.add(r)
+      }
+    }
+    return [...all]
   }
 
   /** 清除所有登記（主要用於測試）。 */

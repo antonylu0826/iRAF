@@ -8,12 +8,12 @@ import { iEntity, iField, BaseObject } from "@iraf/core"
 @iEntity("users", {
   caption: "使用者",
   icon: "User",
-  allowApiCrud: ["admin"],
+  allowApiCrud: ["admins"],
   allowedRoles: {
-    read: ["admin"],
-    create: ["admin"],
-    update: ["admin"],
-    delete: ["admin"],
+    read:   ["admins", "users"],
+    create: ["admins"],
+    update: (user, row) => user?.roles?.includes("admins") || user?.id === row?.id,
+    delete: ["admins"],
   },
 })
 export class AppUser extends BaseObject {
@@ -26,6 +26,14 @@ export class AppUser extends BaseObject {
   @iField.string({ caption: "顯示名稱", order: 2 })
   displayName = ""
 
-  @iField.json({ caption: "角色", hidden: true })
+  @iField.boolean({ caption: "啟用", order: 3 })
+  isActive = true
+
+  @iField.json({
+    caption: "角色",
+    control: "roles",
+    order: 4,
+    writeRoles: ["admins"],
+  })
   roles: string[] = []
 }

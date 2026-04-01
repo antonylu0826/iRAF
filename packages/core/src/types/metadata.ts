@@ -6,6 +6,30 @@ export const IRAF_ENTITY_KEY = Symbol("iraf:entity")
 export const IRAF_ACTION_KEY = Symbol("iraf:action")
 export const IRAF_CONTROLLER_KEY = Symbol("iraf:controller")
 
+// ─── User context (minimal, for RBAC predicates) ──────────────────────────────
+
+/** 框架層最小 User context，供 RBAC predicate 使用（不依賴 packages/react） */
+export interface IUserContext {
+  id?: string
+  name?: string
+  roles?: string[]
+}
+
+// ─── RBAC role check ─────────────────────────────────────────────────────────
+
+/**
+ * 角色判斷型別：string 陣列（role 名稱）或 predicate function（支援 row-level）。
+ *
+ * ```ts
+ * // 角色陣列
+ * update: ["admins", "users"]
+ *
+ * // Row-level predicate
+ * update: (user, row) => user?.roles?.includes("admins") || user?.id === row?.id
+ * ```
+ */
+export type RoleCheck = string[] | ((user: IUserContext | undefined, row?: any) => boolean)
+
 // ─── Field metadata ───────────────────────────────────────────────────────────
 
 /** iRAF 欄位 UI hints（儲存於 Reflect metadata） */
@@ -27,6 +51,8 @@ export interface IFieldMeta {
   control?: string
   /** 輸入框的佔位文字 */
   placeholder?: string
+  /** 只有具備指定角色的使用者才能寫入此欄位；不符合角色時自動 readOnly */
+  writeRoles?: string[]
   /** iRAF 內部：紀錄 field 的基礎型別（"string" | "number" | "date" | "boolean" | "json"），供 PluginRegistry 解析預設 control */
   _type?: string
 }
@@ -36,12 +62,12 @@ export interface IFieldOptions extends IFieldMeta {}
 
 // ─── Entity metadata ──────────────────────────────────────────────────────────
 
-/** RBAC 角色權限設定 */
+/** RBAC 角色權限設定（支援 string[] 或 row-level predicate） */
 export interface IEntityRoles {
-  read?: string[]
-  create?: string[]
-  update?: string[]
-  delete?: string[]
+  read?:   RoleCheck
+  create?: RoleCheck
+  update?: RoleCheck
+  delete?: RoleCheck
 }
 
 /** @iEntity 的選項（傳入 decorator 的參數） */

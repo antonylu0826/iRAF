@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react"
 import { useNavigate } from "react-router"
 import { remult } from "remult"
-import { EntityRegistry } from "@iraf/core"
+import { EntityRegistry, type RoleCheck, type IUserContext } from "@iraf/core"
 import { Plus, Loader2, Pencil, Trash2 } from "lucide-react"
 import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, useAuth } from "@iraf/react"
 
@@ -12,9 +12,14 @@ interface ListViewProps {
   basePath?: string
 }
 
-function hasRole(userRoles: string[], required?: string[]): boolean {
-  if (!required || required.length === 0) return true
-  return required.some((r) => userRoles.includes(r))
+function evalRoleCheck(
+  check: RoleCheck | undefined,
+  user: IUserContext | null | undefined,
+  row?: any
+): boolean {
+  if (!check) return true
+  if (typeof check === "function") return check(user ?? undefined, row)
+  return check.some((r) => (user?.roles ?? []).includes(r))
 }
 
 export function ListView({ entityClass, basePath }: ListViewProps) {
@@ -23,8 +28,10 @@ export function ListView({ entityClass, basePath }: ListViewProps) {
   const meta = EntityRegistry.getMeta(entityClass as unknown as Function)
   const base = basePath ?? (meta ? `/${meta.key}` : "")
   const fieldMeta = EntityRegistry.getFieldMeta(entityClass as unknown as Function)
-  const canCreate = hasRole(user?.roles ?? [], meta?.allowedRoles?.create)
-  const canDelete = hasRole(user?.roles ?? [], meta?.allowedRoles?.delete)
+  const canCreate = evalRoleCheck(meta?.allowedRoles?.create, user)
+  // Row-level checks (evaluated per row in render)
+  const canDeleteRow = (row: object) => evalRoleCheck(meta?.allowedRoles?.delete, user, row)
+  const canEditRow = (row: object) => evalRoleCheck(meta?.allowedRoles?.update, user, row)
   const [rows, setRows] = useState<object[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -34,6 +41,9 @@ export function ListView({ entityClass, basePath }: ListViewProps) {
     .filter(([, fm]) => !fm.hidden && !fm.auditField)
     .sort(([, a], [, b]) => (a.order ?? 999) - (b.order ?? 999))
 
+  // Whether any row-level action column should appear
+  const showActions = rows.some((r) => canDeleteRow(r) || canEditRow(r)) || rows.length === 0
+
   useEffect(() => {
     setLoading(true)
     setError(null)
@@ -41,7 +51,7 @@ export function ListView({ entityClass, basePath }: ListViewProps) {
       .repo(entityClass as new () => object)
       .find()
       .then((data) => setRows(data))
-      .catch((e: unknown) => setError(String(e)))
+      .catch((e: any) => setError(e?.message ?? String(e)))
       .finally(() => setLoading(false))
   }, [entityClass])
 
@@ -53,15 +63,13 @@ export function ListView({ entityClass, basePath }: ListViewProps) {
       await remult.repo(entityClass as new () => object).delete(id)
       setRows((prev) => prev.filter((r) => (r as any).id !== id))
     } catch (err: unknown) {
-      setError(String(err))
+      setError((err as any)?.message ?? String(err))
     } finally {
       setDeletingId(null)
     }
   }
 
   if (!meta) return <div className="text-destructive">Entity not registered.</div>
-
-  const showActions = canDelete
 
   return (
     <div className="space-y-4">
@@ -112,6 +120,8 @@ export function ListView({ entityClass, basePath }: ListViewProps) {
               )}
               {rows.map((row) => {
                 const id = (row as Record<string, unknown>)["id"] as string
+                const rowCanEdit = canEditRow(row)
+                const rowCanDelete = canDeleteRow(row)
                 return (
                   <TableRow
                     key={id}
@@ -133,15 +143,17 @@ export function ListView({ entityClass, basePath }: ListViewProps) {
                         onClick={(e: React.MouseEvent) => e.stopPropagation()}
                       >
                         <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            onClick={(e: React.MouseEvent) => { e.stopPropagation(); navigate(`${base}/${id}`) }}
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </Button>
-                          {canDelete && (
+                          {rowCanEdit && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={(e: React.MouseEvent) => { e.stopPropagation(); navigate(`${base}/${id}`) }}
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+                          {rowCanDelete && (
                             <Button
                               variant="ghost"
                               size="icon"

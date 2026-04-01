@@ -1,12 +1,18 @@
 import React from "react"
 import { NavLink } from "react-router"
-import { ModuleRegistry, EntityRegistry, type IMenuItem } from "@iraf/core"
+import { ModuleRegistry, EntityRegistry, type IMenuItem, type IModuleDef } from "@iraf/core"
 import * as LucideIcons from "lucide-react"
 import { Separator } from "./ui/separator"
 import { cn } from "../lib/utils"
+import { useAuth } from "../context/AuthContext"
 
 interface SidebarProps {
   title: string
+}
+
+function isModuleVisible(mod: IModuleDef, userRoles: string[]): boolean {
+  if (!mod.allowedRoles || mod.allowedRoles.length === 0) return true
+  return mod.allowedRoles.some((r) => userRoles.includes(r))
 }
 
 function NavIcon({ name }: { name?: string }) {
@@ -36,7 +42,9 @@ function resolveMenuItem(item: IMenuItem): { caption: string; icon?: string; pat
 }
 
 export function Sidebar({ title }: SidebarProps) {
-  const modules = ModuleRegistry.getAll()
+  const { user } = useAuth()
+  const userRoles = user?.roles ?? []
+  const modules = ModuleRegistry.getAll().filter((mod) => isModuleVisible(mod, userRoles))
 
   return (
     <aside className="w-64 shrink-0 border-r bg-background flex flex-col h-full shadow-sm">

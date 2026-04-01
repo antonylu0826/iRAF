@@ -15,7 +15,6 @@
     "@iraf/core": "*",
     "@iraf/react": "*",
     "@iraf/module-sample": "*",
-    "@iraf/module-sales": "*",
     "@types/bcrypt": "^6.0.0",
     "@types/jsonwebtoken": "^9.0.10",
     "bcrypt": "^6.0.0",

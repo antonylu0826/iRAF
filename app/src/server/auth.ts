@@ -56,6 +56,10 @@ export function createAuthRouter(withRemult: import("express").RequestHandler): 
         res.status(401).json({ message: "帳號或密碼錯誤" })
         return
       }
+      if (user.isActive === false) {
+        res.status(403).json({ message: "帳號已停用，請聯絡管理員" })
+        return
+      }
       res.json({ token: signToken(user), user: { id: user.id, name: user.displayName || user.username, roles: user.roles } })
     } catch (e) {
       console.error("[auth/login error]", e)
@@ -81,7 +85,7 @@ export function createAuthRouter(withRemult: import("express").RequestHandler): 
       return
     }
     const passwordHash = await bcrypt.hash(password, 10)
-    const user = await repo.insert({ username, passwordHash, displayName: displayName ?? username, roles: ["admin"] })
+    const user = await repo.insert({ username, passwordHash, displayName: displayName ?? username, roles: ["admins"] })
     res.json({ token: signToken(user), user: { id: user.id, name: user.displayName, roles: user.roles } })
   })
 

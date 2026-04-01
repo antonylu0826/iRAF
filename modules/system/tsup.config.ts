@@ -6,6 +6,8 @@ export default defineConfig({
   dts: true,
   sourcemap: true,
   clean: true,
+  // bcrypt is a native CJS module — must not be bundled into ESM output
+  external: ["bcrypt"],
   esbuildOptions(options) {
     options.keepNames = true
   },

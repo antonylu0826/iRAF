@@ -538,22 +538,25 @@ ModuleRegistry.use(SalesModule, SystemModule)
 
 ---
 
-### Phase 6 — 安全強化與 RBAC 配置 [ ]
+### Phase 6 — 安全強化與 RBAC 配置 [x]
 
 #### RBAC 設定層
-- [ ] `defineRoles([...])` — app bootstrap 時宣告合法角色（供 UI 選單使用）
-- [ ] `defineModule({ allowedRoles: [...] })` — 角色不符時 Sidebar 自動隱藏整個模組
-- [ ] `@iField.*({ writeRoles: ['admin'] })` — 欄位寫入角色控制（補強現有 `readOnly`）
-- [ ] Sidebar 根據 `user.roles` 過濾 module / menu item 可視性
+- [x] `SYSTEM_ROLES` + `ModuleRegistry.getAllRoles()` — 聚合系統預設角色與模組宣告角色
+- [x] `defineModule({ roles, allowedRoles })` — 角色不符時 Sidebar 自動隱藏整個模組
+- [x] `@iField.*({ writeRoles: ['admins'] })` — 欄位寫入角色控制
+- [x] `RoleCheck` 型別 — 支援 `string[]` 或 row-level predicate function
+- [x] Sidebar 根據 `user.roles` 過濾模組可視性
+- [x] DetailView / ListView 支援 row-level predicate（`canSave` / `canEdit` / `canDelete`）
 
 #### 使用者管理 UI
-- [ ] iRAFUser `roles` 欄位改用 multi-select control plugin
-- [ ] 使用者啟用/停用 iAction
-- [ ] 重設密碼 iAction（admin 強制重設他人密碼）
+- [x] `AppUser.isActive` 欄位 + 登入封鎖
+- [x] `AppUser.roles` 改用 `"roles"` multi-select control plugin
+- [x] `UserController.toggleActive` — 切換使用者啟用狀態
+- [x] `UserController.resetPassword` — admin 強制重設密碼
 
 #### 密碼安全
-- [ ] 密碼強度規則引擎（長度、大小寫、特殊字元）
-- [ ] 忘記密碼 + Email 驗證機制
+- [x] `passwordRules()` — 密碼強度規則引擎（長度、大小寫、數字、特殊字元）
+- [-] 忘記密碼 + Email 驗證機制（不在範圍，改為「聯絡管理員重設」）
 
 ### Phase 7 — 開發體驗 [ ]
 - [ ] AI Agent prompt templates（讓 agent 能按框架慣例生成 BO）

@@ -49,6 +49,10 @@ export interface IModuleOptions {
   requires?: string[]
   /** 模組自帶的插件（由 packages/react 處理） */
   plugins?: IModulePlugin[]
+  /** 模組自有角色宣告（由 ModuleRegistry.getAllRoles() 聚合） */
+  roles?: string[]
+  /** 控制 Sidebar 模組可視性：只有具備指定角色的使用者才能看到此模組 */
+  allowedRoles?: string[]
 }
 
 /** 已登記的模組定義（等同 IModuleOptions，由 defineModule 回傳） */

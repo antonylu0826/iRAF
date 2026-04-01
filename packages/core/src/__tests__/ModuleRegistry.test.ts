@@ -1,6 +1,6 @@
 import "reflect-metadata"
 import { describe, it, expect, beforeEach } from "vitest"
-import { ModuleRegistry, defineModule } from "../registry/ModuleRegistry"
+import { ModuleRegistry, defineModule, SYSTEM_ROLES } from "../registry/ModuleRegistry"
 import { EntityRegistry } from "../registry/EntityRegistry"
 import { iEntity } from "../decorators/iEntity"
 import { iField } from "../decorators/iField"
@@ -138,5 +138,31 @@ describe("ModuleRegistry", () => {
     ModuleRegistry.use(defineModule({ key: "sales", caption: "銷售" }))
     ModuleRegistry.clear()
     expect(ModuleRegistry.getAll()).toHaveLength(0)
+  })
+
+  // ─── getAllRoles (P6) ────────────────────────────────────────────────────────
+
+  it("getAllRoles() 無模組時回傳系統預設角色", () => {
+    const roles = ModuleRegistry.getAllRoles()
+    expect(roles).toContain("admins")
+    expect(roles).toContain("users")
+  })
+
+  it("getAllRoles() 聚合模組宣告角色並去重", () => {
+    ModuleRegistry.use(defineModule({ key: "sales", caption: "銷售", roles: ["sale_managers", "sale_member"] }))
+    ModuleRegistry.use(defineModule({ key: "hr",    caption: "人資",  roles: ["hr_admin", "admins"] })) // admins 重複
+    const roles = ModuleRegistry.getAllRoles()
+    expect(roles).toContain("admins")
+    expect(roles).toContain("users")
+    expect(roles).toContain("sale_managers")
+    expect(roles).toContain("sale_member")
+    expect(roles).toContain("hr_admin")
+    // 去重：admins 只出現一次
+    expect(roles.filter((r) => r === "admins")).toHaveLength(1)
+  })
+
+  it("SYSTEM_ROLES 包含 admins 和 users", () => {
+    expect(SYSTEM_ROLES).toContain("admins")
+    expect(SYSTEM_ROLES).toContain("users")
   })
 })
