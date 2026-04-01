@@ -6,11 +6,7 @@ import { AppShell } from "./AppShell"
 import { LoginPage } from "./LoginPage"
 import { Loader2 } from "lucide-react"
 import { PluginRegistry } from "../registry/PluginRegistry"
-import { initPlugins } from "../initPlugins"
 import { initModulePlugins } from "../initModulePlugins"
-
-// 框架啟動時登記內建插件（idempotent）
-initPlugins()
 
 interface iRAFAppProps {
   title?: string

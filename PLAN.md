@@ -538,18 +538,28 @@ ModuleRegistry.use(SalesModule, SystemModule)
 
 ---
 
-### Phase 6 — 開發體驗 [ ]
-- [ ] CLI 工具（`iraf new entity Customer`）
-- [ ] VS Code Extension（BO metadata 智能提示）（先不做，之後有需要再補）
-- [ ] AI Agent prompt templates（讓 agent 能按框架慣例生成 BO）
-- [ ] 建立 iRAF 使用文件庫
-- [ ] 建立能使用 iRAF 文件庫並進行開發的 MCP 工具給各家 ageent 使用
+### Phase 6 — 安全強化與 RBAC 配置 [ ]
 
-### Phase 7 — 進階安全與用戶體驗 [ ]
-- [ ] 使用者管理介面優化（角色指派與狀態管理）
-- [ ] 「重設密碼」自定義動作（iAction 設計）
-- [ ] 忘記密碼與 Email 驗證機制
-- [ ] 密碼強度規則引擎與安全性加強
+#### RBAC 設定層
+- [ ] `defineRoles([...])` — app bootstrap 時宣告合法角色（供 UI 選單使用）
+- [ ] `defineModule({ allowedRoles: [...] })` — 角色不符時 Sidebar 自動隱藏整個模組
+- [ ] `@iField.*({ writeRoles: ['admin'] })` — 欄位寫入角色控制（補強現有 `readOnly`）
+- [ ] Sidebar 根據 `user.roles` 過濾 module / menu item 可視性
+
+#### 使用者管理 UI
+- [ ] iRAFUser `roles` 欄位改用 multi-select control plugin
+- [ ] 使用者啟用/停用 iAction
+- [ ] 重設密碼 iAction（admin 強制重設他人密碼）
+
+#### 密碼安全
+- [ ] 密碼強度規則引擎（長度、大小寫、特殊字元）
+- [ ] 忘記密碼 + Email 驗證機制
+
+### Phase 7 — 開發體驗 [ ]
+- [ ] 建立 iRAF 使用文件庫
+- [ ] CLI 工具（`iraf new entity Customer`）
+- [ ] AI Agent prompt templates（讓 agent 能按框架慣例生成 BO）
+- [ ] 建立一套機制能讓各家 agent 使用 iRAF 建構系統
 
 ---
 

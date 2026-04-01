@@ -4,7 +4,9 @@
   "version": "0.0.0",
   "workspaces": [
     "packages/*",
-    "apps/*"
+    "modules/*",
+    "plugins/*",
+    "app"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
@@ -12,7 +14,7 @@
     "test:watch": "vitest",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "dev:demo": "concurrently -n server,vite -c blue,green \"npm run dev:server --workspace=apps/demo\" \"npm run dev --workspace=apps/demo\""
+    "dev:demo": "concurrently -n server,vite -c blue,green \"npm run dev:server --workspace=app\" \"npm run dev --workspace=app\""
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

@@ -1,4 +1,5 @@
-import { defineModule, iRAFUser } from "@iraf/core"
+import { defineModule } from "@iraf/core"
+import { iRAFUser } from "./entities/iRAFUser"
 
 export const SystemModule = defineModule({
   key: "system",
