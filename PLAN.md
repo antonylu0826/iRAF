@@ -556,10 +556,13 @@ ModuleRegistry.use(SalesModule, SystemModule)
 - [ ] 忘記密碼 + Email 驗證機制
 
 ### Phase 7 — 開發體驗 [ ]
-- [ ] 建立 iRAF 使用文件庫
-- [ ] CLI 工具（`iraf new entity Customer`）
 - [ ] AI Agent prompt templates（讓 agent 能按框架慣例生成 BO）
 - [ ] 建立一套機制能讓各家 agent 使用 iRAF 建構系統
+  完整的框架慣例（defineModule / @iEntity / @iField / @iAction）
+  Sample module 作為參考範例
+  穩定的型別定義
+- [-] CLI 工具（`iraf new entity Customer`，但在有 AI agent 的情況下，價值有限）
+- [-] 建立 iRAF 使用文件庫(給人看的，優先順序不高)
 
 ---
 

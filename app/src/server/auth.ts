@@ -20,7 +20,7 @@ export function signToken(user: AppUser): string {
 }
 
 /** Remult getUser — 從 Authorization header 解析 JWT，回傳 UserInfo */
-export function getUser(req: { headers: Record<string, string | string[] | undefined> }) {
+export async function getUser(req: { headers: Record<string, string | string[] | undefined> }) {
   const authHeader = req.headers["authorization"]
   if (!authHeader || typeof authHeader !== "string") return undefined
   const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : authHeader

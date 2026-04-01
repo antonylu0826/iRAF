@@ -7,7 +7,7 @@ import bcrypt from "bcrypt"
 import { EntityRegistry } from "@iraf/core"
 import { AppUser } from "@iraf/module-system"
 import { getUser, createAuthRouter } from "./auth"
-import "../features" // 觸發 ModuleRegistry.use(...)
+import "../modules" // 觸發 ModuleRegistry.use(...)
 
 const app = express()
 app.use(express.json())

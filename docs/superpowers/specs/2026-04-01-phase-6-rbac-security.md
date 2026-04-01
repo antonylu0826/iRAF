@@ -78,7 +78,7 @@ salary = 0
 type RoleCheck = string[] | ((user: AuthUser | undefined, row?: any) => boolean)
 
 // 使用範例：使用者只能修改自己的 profile
-@iEntity("iraf-users", {
+@iEntity("users", {
   allowedRoles: {
     read:   ["admins", "users"],
     update: (user, row) => user?.roles?.includes("admins") || user?.id === row?.id,
@@ -104,7 +104,7 @@ type RoleCheck = string[] | ((user: AuthUser | undefined, row?: any) => boolean)
 ### AppUser 擴充
 
 ```ts
-@iEntity("iraf-users", {
+@iEntity("users", {
   allowedRoles: {
     read:   ["admins", "users"],
     update: (user, row) => user?.roles?.includes("admins") || user?.id === row?.id,

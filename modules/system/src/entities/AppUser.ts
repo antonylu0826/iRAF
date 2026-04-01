@@ -5,7 +5,7 @@ import { iEntity, iField, BaseObject } from "@iraf/core"
  * 帳號/密碼雜湊/角色清單，由 iRAF 安全層管理。
  * passwordHash 欄位在 UI 層隱藏，透過 auth API 管理。
  */
-@iEntity("iraf-users", {
+@iEntity("users", {
   caption: "使用者",
   icon: "User",
   allowApiCrud: ["admin"],

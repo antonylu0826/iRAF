@@ -1,7 +1,7 @@
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 import "./index.css"
-import "./features" // trigger ModuleRegistry.use(...)
+import "./modules" // trigger ModuleRegistry.use(...)
 import { initPlugins } from "@iraf/plugin-system"
 import { iRAFApp as App } from "@iraf/react"
 
