@@ -4,7 +4,7 @@ import { Router } from "express"
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 import { remult } from "remult"
-import { iRAFUser } from "@iraf/core"
+import { iRAFUser } from "@iraf/module-system"
 
 export const JWT_SECRET = process.env.IRAF_JWT_SECRET ?? "iraf-dev-secret-change-in-production"
 const TOKEN_EXPIRES = "8h"
