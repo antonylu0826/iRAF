@@ -17,6 +17,12 @@ function extractFieldMeta(options: IFieldOptions): IFieldMeta {
   if (options.validate !== undefined) meta.validate = options.validate
   if (options.auditField !== undefined) meta.auditField = options.auditField
   if (options.control !== undefined) meta.control = options.control
+  if (options.placeholder !== undefined) meta.placeholder = options.placeholder
+  if (options.writeRoles !== undefined) meta.writeRoles = options.writeRoles
+  if (options.options !== undefined) meta.options = options.options
+  if (options.ref !== undefined) meta.ref = options.ref
+  if (options.refLabel !== undefined) meta.refLabel = options.refLabel
+  if (options.refThreshold !== undefined) meta.refThreshold = options.refThreshold
   return meta
 }
 

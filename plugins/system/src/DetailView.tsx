@@ -237,7 +237,11 @@ export function DetailView({
                           {field.required && <span className="text-destructive ml-1">*</span>}
                         </label>
                         {(() => {
-                          const controlName = field.control ?? undefined
+                          const controlName =
+                            field.control ??
+                            (field.options ? "select" : undefined) ??
+                            (field.ref ? "lookup" : undefined) ??
+                            undefined
                           const plugin = controlName
                             ? PluginRegistry.resolve("control", controlName)
                             : PluginRegistry.resolveDefault("control", field._type ?? "string")

@@ -107,6 +107,25 @@ export class FeatureGallery extends BaseObject {
     writeRoles: ["admins"],
   })
   assignedRoles: string[] = []
+
+  @iField.string({
+    caption: "優先級 (Enum/Options)",
+    group: "安全與系統碼",
+    order: 32,
+    options: ["Low", "Medium", "High"],
+    placeholder: "展示下拉選單 metadata"
+  })
+  priority = "Medium"
+
+  @iField.string({
+    caption: "負責人 (Reference/Lookup)",
+    group: "安全與系統碼",
+    order: 33,
+    ref: "users",
+    refLabel: "displayName",
+    placeholder: "展示外鍵關聯至 users 實體"
+  })
+  assigneeId = ""
 }
 
 /**

@@ -558,14 +558,54 @@ ModuleRegistry.use(SalesModule, SystemModule)
 - [x] `passwordRules()` — 密碼強度規則引擎（長度、大小寫、數字、特殊字元）
 - [-] 忘記密碼 + Email 驗證機制（不在範圍，改為「聯絡管理員重設」）
 
-### Phase 7 — 開發體驗 [ ]
-- [ ] AI Agent prompt templates（讓 agent 能按框架慣例生成 BO）
-- [ ] 建立一套機制能讓各家 agent 使用 iRAF 建構系統
-  完整的框架慣例（defineModule / @iEntity / @iField / @iAction）
-  Sample module 作為參考範例
-  穩定的型別定義
-- [-] CLI 工具（`iraf new entity Customer`，但在有 AI agent 的情況下，價值有限）
-- [-] 建立 iRAF 使用文件庫(給人看的，優先順序不高)
+### Phase 7 — Enum 與 Reference 控制項 [x]
+
+讓 `options` 和 `ref` 這兩個 field metadata 有對應的 UI 控制項，完善 FeatureGallery 的示範。
+
+#### 7.1 Enum / Select Control
+
+- [x] `packages/core`：`IFieldMeta.options` 已存在（Gemini 加入）✓
+- [x] `plugins/system`：`SelectInput` control plugin
+  - 支援 `string[]`（直接顯示）與 `{ id, caption }[]`（顯示 caption、儲存 id）
+  - 樣式與現有 input 一致
+- [x] `plugins/system`：DetailView 自動偵測 — 欄位有 `options` 且無明確 `control` → 自動用 `"select"`
+- [x] `plugins/system`：`initPlugins` 登記 `"select"` control
+- [x] ListView：select 欄位顯示 label（string 直接顯示；`{id,caption}` 顯示 caption）
+
+#### 7.2 Reference / Lookup Control
+
+仿照 XAF 策略：**mount 時 fetch 前 26 筆，自動決定呈現方式，無需開發者指定 mode**。
+
+- [x] `packages/core`：`IFieldMeta.ref` 已存在（Gemini 加入）✓
+- [x] `packages/core`：`IFieldMeta.refLabel?: string` — 顯示欄位名稱（未指定時自動取第一個可見 string 欄位）
+- [x] `packages/core`：`IFieldMeta.refThreshold?: number` — 覆蓋預設閾值 25（選填）
+- [x] `packages/core`：`EntityRegistry.getByKey(key: string)` — 依 entity key 取得 class
+- [x] `plugins/system`：`LookupInput` control plugin
+  - mount 時 `GET /api/[ref]?_limit=26`
+  - `data.length ≤ threshold(25)` → 渲染 `<select>`（preload all）
+  - `data.length > threshold` → 渲染「已選值 ＋ [選擇] 按鈕」，點擊開 Modal（搜尋框 ＋ 分頁列表 ＋ 點選確認）
+  - 顯示 `refLabel` 欄位，儲存 id；有 loading / error 狀態
+- [x] `plugins/system`：DetailView 自動偵測 — 欄位有 `ref` 且無明確 `control` → 自動用 `"lookup"`
+- [x] `plugins/system`：`initPlugins` 登記 `"lookup"` control
+- [x] ListView：lookup 欄位用 **batch fetch by visible IDs**（`id: { $in: [...ids] }`），解析為 label 顯示；不管資料量多少只打一次 API
+- [x] `modules/sample`：`FeatureGallery.assigneeId` 加入 `refLabel: "displayName"`，重建
+
+#### 7.3 測試
+
+- [x] `SelectInput`：string[] / `{id,caption}[]` 選項渲染正確
+- [x] `LookupInput`（select 模式）：≤ 25 筆時渲染 `<select>`，顯示 label、儲存 id
+- [x] `LookupInput`（modal 模式）：> 25 筆時渲染按鈕，Modal 可搜尋、分頁、選取
+- [x] ListView batch fetch：解析 label 正確，只打一次 API
+
+---
+
+### Phase Final — 開發體驗 [ ]
+- [ ] `AGENTS.md` — 通用框架指引（任何 agent 讀了就能上手）
+- [ ] `CLAUDE.md` — Claude Code 專屬設定
+- [ ] `GEMINI.md` / `.cursorrules` — 其他工具的輕量版引用文件
+- [ ] `packages/mcp/` — iRAF MCP server（scaffold-module / scaffold-entity / get-example / list-modules）
+- [-] CLI 工具（有 AI agent 後價值有限）
+- [-] 完整使用文件庫（優先順序不高）
 
 ---
 

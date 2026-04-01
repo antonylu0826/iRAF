@@ -11,9 +11,16 @@ import { PluginRegistry } from "../registry/PluginRegistry"
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
-function hasRole(userRoles: string[], required?: string[]): boolean {
-  if (!required || required.length === 0) return true
-  return required.some((r) => userRoles.includes(r))
+function checkRole(user: any, required?: any, row?: any): boolean {
+  if (!required) return true
+  if (Array.isArray(required)) {
+    if (required.length === 0) return true
+    return required.some((r: string) => user?.roles?.includes(r))
+  }
+  if (typeof required === "function") {
+    return required(user, row)
+  }
+  return true
 }
 
 function evalBool(
@@ -44,17 +51,18 @@ export function DetailView({
   const actions = EntityRegistry.getActions(entityClass as unknown as Function)
 
   const isNew = id === "new"
-  const canSave = hasRole(
-    user?.roles ?? [],
-    isNew ? meta?.allowedRoles?.create : meta?.allowedRoles?.update
-  )
-
   const [item, setItem] = useState<Record<string, any>>({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [globalError, setGlobalError] = useState<string | null>(null)
+
+  const canSave = checkRole(
+    user,
+    isNew ? meta?.allowedRoles?.create : meta?.allowedRoles?.update,
+    item
+  )
 
   useEffect(() => {
     if (isNew) {
@@ -176,7 +184,7 @@ export function DetailView({
       {!isNew && actions.length > 0 && (
         <div className="flex flex-wrap gap-2 px-1">
           {actions
-            .filter(({ meta: am }) => hasRole(user?.roles ?? [], am.allowedRoles))
+            .filter(({ meta: am }) => checkRole(user, am.allowedRoles, item))
             .map(({ controllerClass, meta: am }) => {
               const IconComp = am.icon
                 ? ((LucideIcons as unknown as Record<string, React.ComponentType<any>>)[am.icon] ?? null)
@@ -229,7 +237,7 @@ export function DetailView({
                           {field.required && <span className="text-destructive ml-1">*</span>}
                         </label>
                         {(() => {
-                          const controlName = field.control ?? undefined
+                          const controlName = field.control ?? (field.ref ? "lookup" : field.options ? "select" : undefined)
                           const plugin = controlName
                             ? PluginRegistry.resolve("control", controlName)
                             : PluginRegistry.resolveDefault("control", field._type ?? "string")

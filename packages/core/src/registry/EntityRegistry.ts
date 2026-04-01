@@ -102,6 +102,16 @@ export class EntityRegistry {
     return [...this._controllers]
   }
 
+  /**
+   * 依 entity key 取得對應的 class。供 LookupInput 等動態解析使用。
+   */
+  static getByKey(key: string): Function | undefined {
+    return this._entities.find((e) => {
+      const meta = Reflect.getMetadata(IRAF_ENTITY_KEY, e) as IEntityMeta | undefined
+      return meta?.key === key
+    })
+  }
+
   /** 清除所有登記（主要用於測試）。 */
   static clear(): void {
     this._entities = []

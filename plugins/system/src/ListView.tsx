@@ -36,6 +36,8 @@ export function ListView({ entityClass, basePath }: ListViewProps) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  // ref column label cache: { [fieldKey]: { [id]: label } }
+  const [refLabels, setRefLabels] = useState<Record<string, Record<string, string>>>({})
 
   const columns = Object.entries(fieldMeta)
     .filter(([, fm]) => !fm.hidden && !fm.auditField)
@@ -54,6 +56,43 @@ export function ListView({ entityClass, basePath }: ListViewProps) {
       .catch((e: any) => setError(e?.message ?? String(e)))
       .finally(() => setLoading(false))
   }, [entityClass])
+
+  // Batch-fetch labels for all ref columns whenever rows change
+  useEffect(() => {
+    const refCols = columns.filter(([, fm]) => fm.ref)
+    if (refCols.length === 0 || rows.length === 0) return
+    async function fetchRefLabels() {
+      const result: Record<string, Record<string, string>> = {}
+      for (const [colKey, fm] of refCols) {
+        const refClass = EntityRegistry.getByKey(fm.ref!)
+        if (!refClass) continue
+        const ids = [...new Set((rows as any[]).map((r) => r[colKey]).filter(Boolean))]
+        if (ids.length === 0) continue
+        try {
+          const records: any[] = await remult.repo(refClass as any).find({
+            where: { id: { $in: ids } } as any,
+            limit: ids.length,
+          })
+          const refFieldMeta = EntityRegistry.getFieldMeta(refClass)
+          const labelField =
+            fm.refLabel ??
+            Object.entries(refFieldMeta)
+              .filter(([key, f]) => !f.hidden && f._type === "string" && key !== "id")
+              .sort(([, a], [, b]) => (a.order ?? 999) - (b.order ?? 999))[0]?.[0] ??
+            "id"
+          const map: Record<string, string> = {}
+          for (const rec of records) {
+            map[String(rec.id)] = String(rec[labelField] ?? rec.id)
+          }
+          result[colKey] = map
+        } catch {
+          // leave col without labels
+        }
+      }
+      setRefLabels(result)
+    }
+    fetchRefLabels()
+  }, [rows]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleDelete = async (e: React.MouseEvent<HTMLElement>, id: string) => {
     e.stopPropagation()
@@ -128,15 +167,20 @@ export function ListView({ entityClass, basePath }: ListViewProps) {
                     onClick={() => navigate(`${base}/${id}`)}
                     className="cursor-pointer"
                   >
-                    {columns.map(([fieldKey, fm]) => (
-                      <TableCell key={fieldKey}>
-                        {fm._type === "boolean"
-                          ? (row as any)[fieldKey] ? "✓" : "—"
-                          : fm._type === "date" && (row as any)[fieldKey]
-                          ? new Date((row as any)[fieldKey]).toLocaleDateString("zh-TW")
-                          : String((row as Record<string, unknown>)[fieldKey] ?? "")}
-                      </TableCell>
-                    ))}
+                    {columns.map(([fieldKey, fm]) => {
+                      const raw = (row as any)[fieldKey]
+                      let cell: string
+                      if (fm._type === "boolean") {
+                        cell = raw ? "✓" : "—"
+                      } else if (fm._type === "date" && raw) {
+                        cell = new Date(raw).toLocaleDateString("zh-TW")
+                      } else if (fm.ref) {
+                        cell = refLabels[fieldKey]?.[String(raw)] ?? String(raw ?? "")
+                      } else {
+                        cell = String(raw ?? "")
+                      }
+                      return <TableCell key={fieldKey}>{cell}</TableCell>
+                    })}
                     {showActions && (
                       <TableCell
                         className="text-right"

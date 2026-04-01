@@ -55,6 +55,14 @@ export interface IFieldMeta {
   writeRoles?: string[]
   /** iRAF 內部：紀錄 field 的基礎型別（"string" | "number" | "date" | "boolean" | "json"），供 PluginRegistry 解析預設 control */
   _type?: string
+  /** 供 Enum (Choice) 使用的可選清單。支援字串陣列或物件陣列（id/caption） */
+  options?: (string | { id: any; caption: string })[]
+  /** 供 Reference (Lookup) 使用，指向關聯實體的 key（例如 "users"） */
+  ref?: string
+  /** ref 欄位：顯示用的欄位名稱（未指定時自動偵測第一個可見 string 欄位） */
+  refLabel?: string
+  /** ref 欄位：select / modal 切換閾值（預設 25，筆數 ≤ 此值用 <select>，超過用 Modal） */
+  refThreshold?: number
 }
 
 /** @iField.string / @iField.number 等的選項 */
