@@ -5,7 +5,7 @@ import { remultExpress } from "remult/remult-express"
 import { remult } from "remult"
 import bcrypt from "bcrypt"
 import { EntityRegistry } from "@iraf/core"
-import { iRAFUser } from "@iraf/module-system"
+import { AppUser } from "@iraf/module-system"
 import { getUser, createAuthRouter } from "./auth"
 import "../features" // 觸發 ModuleRegistry.use(...)
 
@@ -18,7 +18,7 @@ const api = remultExpress({
   controllers: EntityRegistry.getAllControllers() as any[],
   getUser,
   initApi: async () => {
-    const repo = remult.repo(iRAFUser)
+    const repo = remult.repo(AppUser)
     const count = await repo.count()
     if (count === 0) {
       const username = process.env.IRAF_ADMIN_USERNAME ?? "admin"

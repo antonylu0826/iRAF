@@ -1,9 +1,9 @@
 import { defineModule } from "@iraf/core"
-import { iRAFUser } from "./entities/iRAFUser"
+import { AppUser } from "./entities/AppUser"
 
 export const SystemModule = defineModule({
   key: "system",
   caption: "系統管理",
   icon: "Settings",
-  entities: [iRAFUser],
+  entities: [AppUser],
 })

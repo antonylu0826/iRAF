@@ -6,7 +6,7 @@
 
 - `packages/core/` — `@iraf/core`：框架核心（decorator、EntityRegistry、BaseObject）
 - `packages/react/` — `@iraf/react`：React UI 層（App Shell、ListView、DetailView）
-- `apps/demo/` — Demo 應用（驗證框架功能）
+- `app/` — 應用程式目錄
 - `PLAN.md` — 整體架構規劃
 - `docs/superpowers/plans/` — 各 Phase 的詳細實作計畫
 

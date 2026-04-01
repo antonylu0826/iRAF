@@ -4,14 +4,14 @@ import { Router } from "express"
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 import { remult } from "remult"
-import { iRAFUser } from "@iraf/module-system"
+import { AppUser } from "@iraf/module-system"
 
 export const JWT_SECRET = process.env.IRAF_JWT_SECRET ?? "iraf-dev-secret-change-in-production"
 const TOKEN_EXPIRES = "8h"
 
 // ─── JWT helpers ──────────────────────────────────────────────────────────────
 
-export function signToken(user: iRAFUser): string {
+export function signToken(user: AppUser): string {
   return jwt.sign(
     { id: user.id, name: user.displayName || user.username, roles: user.roles },
     JWT_SECRET,
@@ -45,7 +45,7 @@ export function createAuthRouter(withRemult: import("express").RequestHandler): 
         res.status(400).json({ message: "帳號與密碼為必填" })
         return
       }
-      const repo = remult.repo(iRAFUser)
+      const repo = remult.repo(AppUser)
       const user = await repo.findFirst({ username })
       if (!user) {
         res.status(401).json({ message: "帳號或密碼錯誤" })
@@ -74,7 +74,7 @@ export function createAuthRouter(withRemult: import("express").RequestHandler): 
       res.status(400).json({ message: "帳號與密碼為必填" })
       return
     }
-    const repo = remult.repo(iRAFUser)
+    const repo = remult.repo(AppUser)
     const count = await repo.count()
     if (count > 0) {
       res.status(403).json({ message: "已有使用者存在，請聯絡管理員" })

@@ -1,4 +1,4 @@
 import "reflect-metadata"
 
-export { iRAFUser } from "./entities/iRAFUser"
+export { AppUser } from "./entities/AppUser"
 export { SystemModule } from "./SystemModule"
