@@ -9,6 +9,7 @@ import { useAuth } from "../context/AuthContext"
 
 interface SidebarProps {
   title: string
+  onNavigate?: () => void
 }
 
 function isModuleVisible(mod: IModuleDef, userRoles: string[]): boolean {
@@ -42,7 +43,7 @@ function resolveMenuItem(item: IMenuItem): { caption: string; icon?: string; pat
   }
 }
 
-export function Sidebar({ title }: SidebarProps) {
+export function Sidebar({ title, onNavigate }: SidebarProps) {
   const { user } = useAuth()
   const userRoles = user?.roles ?? []
   const modules = ModuleRegistry.getAll().filter((mod) => isModuleVisible(mod, userRoles))
@@ -64,7 +65,7 @@ export function Sidebar({ title }: SidebarProps) {
           return (
             <div key={mod.key} className="mb-6">
               {/* 模組標題 */}
-              <div className="px-6 py-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">
+              <div className="px-6 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-widest opacity-70">
                 {mod.caption}
               </div>
 
@@ -89,6 +90,7 @@ export function Sidebar({ title }: SidebarProps) {
                               : "text-muted-foreground hover:bg-muted hover:text-foreground"
                           )
                         }
+                        onClick={onNavigate}
                       >
                         <NavIcon name={item.icon} />
                         <span className="truncate">{item.caption}</span>
@@ -112,6 +114,7 @@ export function Sidebar({ title }: SidebarProps) {
                             : "text-muted-foreground hover:bg-muted hover:text-foreground"
                         )
                       }
+                      onClick={onNavigate}
                     >
                       <NavIcon name={resolved.icon} />
                       <span className="truncate">{resolved.caption}</span>
