@@ -889,6 +889,33 @@ Step 4: Module Lifecycle
 
 ---
 
+### Phase 9 — UI/Plugin 強化與快取 [x]
+
+補強近期 UI 體驗與 plugin 共用基礎能力，並新增多組 Master-Detail 示範。
+
+#### 9.1 Sidebar 折疊 + RWD
+- [x] Header 左側加入 toggle 按鈕
+- [x] Desktop 折疊時 Sidebar 完全隱藏（不顯示 mini）
+- [x] Mobile 以 overlay 抽屜呈現，點遮罩可關閉
+- [x] Sidebar 群組標題字體加大以提升可讀性
+
+#### 9.2 多組 Master-Detail 示範
+- [x] 新增 `DetailFirst` / `DetailSecond` entity
+- [x] `MasterItem` 同時掛載三組 collection（DetailItem / DetailFirst / DetailSecond）
+- [x] SubGrid 標題支援 entity icon 顯示
+
+#### 9.3 Ref Label 全域快取
+- [x] 抽出共用快取 `refLabelCache`（ListView / SubGrid / LookupInput 共用）
+- [x] 支援 TTL / clear / stats API
+- [x] 對外 export 供其他 plugins 重用
+
+#### 9.4 清理與一致性
+- [x] 移除重複/未使用 UI 元件與 initPlugins
+- [x] bootstrap 順序對齊（`initAll()` → `initPlugins()`）
+- [x] server init 改為先 `serverInitAll()` 再 listen
+
+---
+
 ### Phase Final — 開發體驗 [ ]
 - [ ] `AGENTS.md` — 通用框架指引（任何 agent 讀了就能上手）
 - [ ] `CLAUDE.md` — Claude Code 專屬設定
@@ -896,8 +923,6 @@ Step 4: Module Lifecycle
 - [ ] `packages/mcp/` — iRAF MCP server（scaffold-module / scaffold-entity / get-example / list-modules）
 - [-] CLI 工具（有 AI agent 後價值有限）
 - [-] 完整使用文件庫（優先順序不高）
-
----
 
 ## AI Agent 開發指引（框架設計考量）
 

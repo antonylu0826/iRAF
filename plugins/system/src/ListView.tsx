@@ -4,7 +4,7 @@ import { remult } from "remult"
 import { EntityRegistry, EventBus, EVENTS, evalRoleCheck } from "@iraf/core"
 import { Plus, Loader2, Pencil, Trash2 } from "lucide-react"
 import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, useAuth, SlotArea } from "@iraf/react"
-import { resolveRefLabelField } from "./utils/refLabel"
+import { prefetchLabels } from "./utils/refLabelCache"
 
 interface ListViewProps {
   entityClass: new () => object
@@ -60,20 +60,8 @@ export function ListView({ entityClass, basePath }: ListViewProps) {
         if (!refClass) continue
         const ids = [...new Set((rows as any[]).map((r) => r[colKey]).filter(Boolean))]
         if (ids.length === 0) continue
-        try {
-          const records: any[] = await remult.repo(refClass as any).find({
-            where: { id: { $in: ids } } as any,
-            limit: ids.length,
-          })
-          const labelField = resolveRefLabelField(refClass, fm.refLabel)
-          const map: Record<string, string> = {}
-          for (const rec of records) {
-            map[String(rec.id)] = String(rec[labelField] ?? rec.id)
-          }
-          result[colKey] = map
-        } catch {
-          // leave col without labels
-        }
+        const map = await prefetchLabels(refClass, ids, fm.refLabel)
+        result[colKey] = map
       }
       setRefLabels(result)
     }

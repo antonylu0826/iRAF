@@ -5,7 +5,7 @@ import { Button, cn, PluginRegistry } from "@iraf/react"
 import type { IControlProps } from "@iraf/react"
 import { Check, Loader2, Pencil, Plus, Trash2, X } from "lucide-react"
 import * as LucideIcons from "lucide-react"
-import { resolveRefLabelField } from "../utils/refLabel"
+import { prefetchLabels } from "../utils/refLabelCache"
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -136,23 +136,19 @@ export function SubGrid({ field, entity, onChange, disabled }: IControlProps) {
 
   useEffect(() => {
     const refCols = columns.filter(([, fm]) => fm.ref)
-    if (refCols.length === 0) return
+    if (refCols.length === 0 || rows.length === 0) return
     ;(async () => {
       const updates: Record<string, Record<string, string>> = {}
       for (const [key, fm] of refCols) {
         const entityClass = EntityRegistry.getByKey(fm.ref!)
         if (!entityClass) continue
-        const labelField = resolveRefLabelField(entityClass, fm.refLabel)
-        try {
-          const records: any[] = await remult.repo(entityClass as any).find({ limit: 500 } as any)
-          const map: Record<string, string> = {}
-          records.forEach((r) => { map[String(r.id)] = String(r[labelField] ?? r.id) })
-          updates[key] = map
-        } catch { /* 忽略 */ }
+        const ids = [...new Set(rows.map((r) => r[key]).filter(Boolean))]
+        if (ids.length === 0) continue
+        updates[key] = await prefetchLabels(entityClass, ids, fm.refLabel)
       }
       setLookupCache((prev) => ({ ...prev, ...updates }))
     })()
-  }, [childClass, collection.foreignKey]) // columns 是由 childFields 衍生，與 childClass 同壽命
+  }, [rows, columns])
 
   // ─── 新增確認 ──────────────────────────────────────────────────────────────
 

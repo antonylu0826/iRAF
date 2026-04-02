@@ -6,3 +6,4 @@ export { TextInput, NumberInput, DateInput, Checkbox, TextareaInput, PasswordInp
 export { RolesInput } from "./controls/RolesInput"
 export { SelectInput } from "./controls/SelectInput"
 export { LookupInput } from "./controls/LookupInput"
+export { setRefLabelCacheTTL, clearRefLabelCache, getRefLabelCacheStats } from "./utils/refLabelCache"

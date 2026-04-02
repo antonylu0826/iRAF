@@ -105,9 +105,12 @@ export function DetailView({
           const pendingRows: any[] = item[key] ?? []
           if (pendingRows.length === 0) continue
           const childRepo = remult.repo(fm.collection!.entity() as any)
-          for (const row of pendingRows) {
-            await childRepo.insert({ ...row, [fm.collection!.foreignKey]: (saved as any).id })
-          }
+          const payload = pendingRows.map((row) => ({
+            ...row,
+            [fm.collection!.foreignKey]: (saved as any).id,
+          }))
+          // batch insert to reduce multiple round-trips
+          await childRepo.insert(payload as any)
         }
       }
 

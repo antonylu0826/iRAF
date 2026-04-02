@@ -21,4 +21,17 @@ export default defineConfig({
       "/api": "http://localhost:3001",
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules")) {
+            if (id.includes("remult")) return "remult"
+            if (id.includes("lucide-react")) return "icons"
+            return "vendor"
+          }
+        },
+      },
+    },
+  },
 })
