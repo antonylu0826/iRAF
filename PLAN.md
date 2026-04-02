@@ -942,7 +942,7 @@ Step 4: Module Lifecycle
 
 #### 10.4 前後端訊息一致化
 - [x] 前端統一以 `t` 包裝系統 UI 文案
-- [ ] 後端錯誤訊息採用 code / key，由前端翻譯（或 Accept-Language 傳遞）
+- [x] 後端錯誤訊息採用 code / key，由前端翻譯（或 Accept-Language 傳遞）
 
 ---
 

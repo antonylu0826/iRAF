@@ -4,6 +4,7 @@ import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Loader2 } from "lucide-react"
 import { useI18n } from "../i18n/useI18n"
+import { translateError } from "../i18n/translateError"
 
 export function LoginPage() {
   const { login } = useAuth()
@@ -20,7 +21,7 @@ export function LoginPage() {
     try {
       await login(username, password)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : t("loginFailed"))
+      setError(translateError(t, err) || t("loginFailed"))
     } finally {
       setLoading(false)
     }

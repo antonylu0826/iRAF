@@ -20,6 +20,7 @@ export { initModulePlugins } from "./initModulePlugins"
 export { initI18n, t } from "./i18n/i18n"
 export { I18nRegistry } from "./i18n/registry"
 export { useI18n } from "./i18n/useI18n"
+export { translateError } from "./i18n/translateError"
 
 // ─── UI Components (used by plugins/system) ──────────────────────────────────
 export { Button } from "./components/ui/button"

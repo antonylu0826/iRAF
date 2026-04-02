@@ -30,15 +30,17 @@ export function createAuthRouter(withRemult: import("express").RequestHandler): 
       const result = await provider.login(req.body)
       res.json(result)
     } catch (e: any) {
-      const status = e.message?.toLowerCase?.().includes("disabled") ? 403 : 401
-      res.status(status).json({ message: e.message ?? "Login failed" })
+      const message = e?.message ?? "ERR_AUTH_FAILED"
+      const code = typeof message === "string" && message.startsWith("ERR_") ? message : "ERR_AUTH_FAILED"
+      const status = code === "ERR_AUTH_DISABLED" ? 403 : 401
+      res.status(status).json({ code, message: code })
     }
   })
 
   /** GET /api/auth/me */
   router.get("/api/auth/me", withRemult, (_req, res) => {
     if (!remult.user) {
-      res.status(401).json({ message: "Not authenticated" })
+      res.status(401).json({ code: "ERR_AUTH_UNAUTHENTICATED", message: "ERR_AUTH_UNAUTHENTICATED" })
       return
     }
     res.json({ user: remult.user })

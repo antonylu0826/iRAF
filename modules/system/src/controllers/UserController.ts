@@ -10,12 +10,12 @@ export class UserController {
   @iAction({ caption: "Reset Password", icon: "KeyRound", allowedRoles: ["admins"] })
   static async resetPassword(id: string, newPassword: string): Promise<void> {
     if (!newPassword || newPassword.length < 6) {
-      throw new Error("Password must be at least 6 characters.")
+      throw new Error("ERR_PASSWORD_TOO_SHORT")
     }
     const hasher = ServiceRegistry.require<IPasswordHasher>(SERVICE_KEYS.PASSWORD_HASHER)
     const repo = remult.repo(AppUser)
     const user = await repo.findId(id)
-    if (!user) throw new Error("User not found.")
+    if (!user) throw new Error("ERR_USER_NOT_FOUND")
     const passwordHash = await hasher.hash(newPassword)
     await repo.save({ ...user, passwordHash })
   }
@@ -27,7 +27,7 @@ export class UserController {
   static async toggleActive(id: string): Promise<void> {
     const repo = remult.repo(AppUser)
     const user = await repo.findId(id)
-    if (!user) throw new Error("User not found.")
+    if (!user) throw new Error("ERR_USER_NOT_FOUND")
     await repo.save({ ...user, isActive: !user.isActive })
   }
 }

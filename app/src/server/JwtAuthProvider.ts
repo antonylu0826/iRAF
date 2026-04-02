@@ -30,16 +30,16 @@ export class JwtAuthProvider implements IAuthProvider {
 
   async login(credentials: Record<string, any>): Promise<{ token: string; user: IAuthUser }> {
     const { username, password } = credentials as { username?: string; password?: string }
-    if (!username || !password) throw new Error("Username and password are required.")
+    if (!username || !password) throw new Error("ERR_AUTH_REQUIRED")
 
     const repo = remult.repo(AppUser)
     const user = await repo.findFirst({ username })
-    if (!user) throw new Error("Invalid username or password.")
+    if (!user) throw new Error("ERR_AUTH_INVALID_CREDENTIALS")
 
     const valid = await bcrypt.compare(password, user.passwordHash)
-    if (!valid) throw new Error("Invalid username or password.")
+    if (!valid) throw new Error("ERR_AUTH_INVALID_CREDENTIALS")
 
-    if (user.isActive === false) throw new Error("Account disabled. Please contact an administrator.")
+    if (user.isActive === false) throw new Error("ERR_AUTH_DISABLED")
 
     const token = this.signToken(user)
     return {

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router"
 import { remult } from "remult"
 import { EntityRegistry, EventBus, EVENTS, evalRoleCheck, ModuleRegistry } from "@iraf/core"
 import { Plus, Loader2, Pencil, Trash2 } from "lucide-react"
-import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, useAuth, SlotArea, useI18n } from "@iraf/react"
+import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, useAuth, SlotArea, useI18n, translateError } from "@iraf/react"
 import { prefetchLabels } from "./utils/refLabelCache"
 
 interface ListViewProps {
@@ -31,7 +31,7 @@ export function ListView({ entityClass, basePath }: ListViewProps) {
   const canEditRow = (row: object) => evalRoleCheck(meta?.allowedRoles?.update, user, row)
   const [rows, setRows] = useState<object[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<unknown>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   // ref column label cache: { [fieldKey]: { [id]: label } }
   const [refLabels, setRefLabels] = useState<Record<string, Record<string, string>>>({})
@@ -50,7 +50,7 @@ export function ListView({ entityClass, basePath }: ListViewProps) {
       .repo(entityClass as new () => object)
       .find()
       .then((data) => setRows(data))
-      .catch((e: any) => setError(e?.message ?? String(e)))
+      .catch((e: any) => setError(e))
       .finally(() => setLoading(false))
   }, [entityClass])
 
@@ -73,7 +73,7 @@ export function ListView({ entityClass, basePath }: ListViewProps) {
     fetchRefLabels()
   }, [rows]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleDelete = async (e: React.MouseEvent<HTMLElement>, id: string) => {
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation()
     if (!confirm(t("confirmDelete"))) return
     setDeletingId(id)
@@ -116,9 +116,9 @@ export function ListView({ entityClass, basePath }: ListViewProps) {
         </div>
       )}
 
-      {error && (
+      {Boolean(error) && (
         <div className="rounded-md border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
-          {error}
+          {translateError(t, error)}
         </div>
       )}
 
@@ -192,7 +192,7 @@ export function ListView({ entityClass, basePath }: ListViewProps) {
                               size="icon"
                               className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
                               disabled={deletingId === id}
-                              onClick={(e) => handleDelete(e, id)}
+                              onClick={(e: React.MouseEvent) => handleDelete(e, id)}
                             >
                               {deletingId === id
                                 ? <Loader2 className="h-3.5 w-3.5 animate-spin" />

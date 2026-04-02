@@ -4,7 +4,7 @@ import { remult } from "remult"
 import { EntityRegistry, EventBus, EVENTS, evalRoleCheck, hasRole, ModuleRegistry, type IActionMeta } from "@iraf/core"
 import { ChevronLeft, Save, Loader2, X } from "lucide-react"
 import * as LucideIcons from "lucide-react"
-import { Button, Separator, useAuth, PluginRegistry, SlotArea, cn, useI18n } from "@iraf/react"
+import { Button, Separator, useAuth, PluginRegistry, SlotArea, cn, useI18n, translateError } from "@iraf/react"
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -52,7 +52,7 @@ export function DetailView({
   const [saving, setSaving] = useState(false)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [globalError, setGlobalError] = useState<string | null>(null)
+  const [globalError, setGlobalError] = useState<unknown>(null)
 
   useEffect(() => {
     if (isNew) {
@@ -66,9 +66,9 @@ export function DetailView({
       .findId(id!)
       .then((data) => {
         if (data) setItem(data as any)
-        else setGlobalError(t("recordNotFound"))
+        else setGlobalError({ code: "ERR_RECORD_NOT_FOUND", message: t("recordNotFound") })
       })
-      .catch((e: any) => setGlobalError(e?.message ?? String(e)))
+      .catch((e: any) => setGlobalError(e))
       .finally(() => setLoading(false))
   }, [entityClass, id, isNew])
 
@@ -122,7 +122,7 @@ export function DetailView({
       await EventBus.emit(EVENTS.ENTITY_SAVED, { entityClass, item: saved, isNew })
       navigate(base)
     } catch (e: any) {
-      setGlobalError(e?.message ?? String(e))
+      setGlobalError(e)
     } finally {
       setSaving(false)
     }
@@ -141,7 +141,7 @@ export function DetailView({
       if (data) setItem(data as any)
     } catch (e: any) {
       console.error("[iRAF] Action failed:", e)
-      setGlobalError(e.message || (typeof e === "object" ? JSON.stringify(e) : String(e)))
+      setGlobalError(e)
     } finally {
       setActionLoading(null)
     }
@@ -232,9 +232,9 @@ export function DetailView({
       )}
 
       <form onSubmit={handleSave} className="space-y-8">
-        {globalError && (
+        {Boolean(globalError) && (
           <div className="rounded-md border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive font-medium animate-in fade-in slide-in-from-top-1">
-            {typeof globalError === "object" ? JSON.stringify(globalError) : globalError}
+            {translateError(t, globalError)}
           </div>
         )}
 
