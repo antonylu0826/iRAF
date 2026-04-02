@@ -57,7 +57,7 @@ export interface IModuleOptions {
   // ─── Lifecycle hooks ────────────────────────────────────────────────────────
 
   /**
-   * Client 側初始化 hook。在 React render 前、initPlugins() 之後執行。
+   * Client 側初始化 hook。在 React render 前、initPlugins() 之前執行。
    * 適合用於：登記 slot plugins、訂閱 EventBus、設定 client 端服務。
    */
   onInit?: () => void | Promise<void>

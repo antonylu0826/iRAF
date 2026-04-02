@@ -4,20 +4,10 @@ import { EntityRegistry, type ICollectionMeta, type IFieldMeta } from "@iraf/cor
 import { Button, cn, PluginRegistry } from "@iraf/react"
 import type { IControlProps } from "@iraf/react"
 import { Check, Loader2, Pencil, Plus, Trash2, X } from "lucide-react"
+import * as LucideIcons from "lucide-react"
+import { resolveRefLabelField } from "../utils/refLabel"
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
-
-/** 與 LookupInput 相同的 label field 自動偵測邏輯 */
-function autoLabelField(entityClass: Function, explicit?: string): string {
-  if (explicit) return explicit
-  const fields = EntityRegistry.getFieldMeta(entityClass)
-  return (
-    Object.entries(fields)
-      .filter(([key, fm]) => !fm.hidden && fm._type === "string" && key !== "id")
-      .sort(([, a], [, b]) => (a.order ?? 999) - (b.order ?? 999))
-      [0]?.[0] ?? "id"
-  )
-}
 
 // ─── 格式化顯示值 ──────────────────────────────────────────────────────────────
 
@@ -152,7 +142,7 @@ export function SubGrid({ field, entity, onChange, disabled }: IControlProps) {
       for (const [key, fm] of refCols) {
         const entityClass = EntityRegistry.getByKey(fm.ref!)
         if (!entityClass) continue
-        const labelField = autoLabelField(entityClass, fm.refLabel)
+        const labelField = resolveRefLabelField(entityClass, fm.refLabel)
         try {
           const records: any[] = await remult.repo(entityClass as any).find({ limit: 500 } as any)
           const map: Record<string, string> = {}
@@ -311,14 +301,28 @@ export function SubGrid({ field, entity, onChange, disabled }: IControlProps) {
     <div className="rounded-md border overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/30">
-        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-tight">
+        {(() => {
+          const IconComp =
+            childMeta?.icon
+              ? (LucideIcons as unknown as Record<string, React.ComponentType<any>>)[childMeta.icon] ?? null
+              : null
+          return (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-6 px-0 gap-1 text-xs font-semibold uppercase tracking-tight pointer-events-none"
+        >
+          {IconComp && <IconComp className="h-3.5 w-3.5" />}
           {childMeta?.caption ?? field.caption}
           {isNewMaster && rows.length > 0 && (
-            <span className="ml-2 normal-case font-normal text-amber-600">
+            <span className="ml-1 normal-case font-normal text-amber-600">
               · {rows.length} 筆待寫入
             </span>
           )}
-        </span>
+        </Button>
+          )
+        })()}
         {!disabled && !isBusy && (
           <Button type="button" variant="ghost" size="sm" className="h-6 gap-1 text-xs" onClick={handleStartAdd}>
             <Plus className="h-3 w-3" />

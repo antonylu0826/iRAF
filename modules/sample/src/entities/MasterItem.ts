@@ -1,6 +1,8 @@
 // modules/sample/src/entities/MasterItem.ts
 import { iEntity, iField, BaseObject } from "@iraf/core"
 import { DetailItem } from "./DetailItem"
+import { DetailFirst } from "./DetailFirst"
+import { DetailSecond } from "./DetailSecond"
 
 /**
  * MasterItem — Master-Detail 示範的主項目。
@@ -33,4 +35,20 @@ export class MasterItem extends BaseObject {
     order: 10,
   })
   details: DetailItem[] = []
+
+  @iField.collection({
+    caption: "明細一",
+    entity: () => DetailFirst,
+    foreignKey: "masterId",
+    order: 11,
+  })
+  detailFirsts: DetailFirst[] = []
+
+  @iField.collection({
+    caption: "明細二",
+    entity: () => DetailSecond,
+    foreignKey: "masterId",
+    order: 12,
+  })
+  detailSeconds: DetailSecond[] = []
 }

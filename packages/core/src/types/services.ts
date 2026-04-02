@@ -62,6 +62,17 @@ export interface INotifier {
   warn(message: string): void
 }
 
+// ??? Password Hasher ???????????????????????????????????????????
+
+/**
+ * 撖Ⅳ hash / compare 隞嚗? *
+ * 由 server 端註冊實作（bcrypt / argon2 等），避免 client bundle 誤帶入 node-only 依賴。
+ */
+export interface IPasswordHasher {
+  hash(password: string): Promise<string>
+  compare(password: string, hash: string): Promise<boolean>
+}
+
 // ─── Service key 常數 ─────────────────────────────────────────────────────────
 
 /** 內建服務 key 常數，避免魔法字串 */
@@ -70,4 +81,5 @@ export const SERVICE_KEYS = {
   NOTIFIER: "notifier",
   STORAGE: "storage",
   LOGGER: "logger",
+  PASSWORD_HASHER: "passwordHasher",
 } as const

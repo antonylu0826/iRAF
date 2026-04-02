@@ -7,11 +7,11 @@ import { initPlugins } from "@iraf/plugin-system"
 import { iRAFApp as App } from "@iraf/react"
 
 async function bootstrap() {
-  // 1. 登記 UI plugins
-  initPlugins()
-
-  // 2. 執行所有模組的 client 側初始化（onInit）
+  // 1. 執行所有模組的 client 側初始化（onInit）
   await ModuleRegistry.initAll()
+
+  // 2. 登記 UI plugins（含 module plugins）
+  initPlugins()
 
   // 3. React render
   createRoot(document.getElementById("root")!).render(

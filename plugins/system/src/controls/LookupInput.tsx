@@ -11,24 +11,12 @@ import {
   SelectValue,
 } from "@iraf/react"
 import { Search, X, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
+import { resolveRefLabelField } from "../utils/refLabel"
 
 const inputClass =
   "h-9 w-full min-w-0 rounded-lg border border-input bg-background px-2.5 py-1 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50"
 
 const PAGE_SIZE = 20
-
-// ─── helpers ──────────────────────────────────────────────────────────────────
-
-function autoLabelField(entityClass: Function, explicit?: string): string {
-  if (explicit) return explicit
-  const fields = EntityRegistry.getFieldMeta(entityClass)
-  return (
-    Object.entries(fields)
-      .filter(([key, fm]) => !fm.hidden && fm._type === "string" && key !== "id")
-      .sort(([, a], [, b]) => (a.order ?? 999) - (b.order ?? 999))
-      [0]?.[0] ?? "id"
-  )
-}
 
 // ─── LookupInput ─────────────────────────────────────────────────────────────
 
@@ -44,7 +32,7 @@ export function LookupInput({ value, onChange, disabled, field }: IControlProps)
   const threshold = field.refThreshold ?? 25
   const entityClass = useMemo(() => EntityRegistry.getByKey(field.ref!), [field.ref])
   const labelField = useMemo(
-    () => (entityClass ? autoLabelField(entityClass, field.refLabel) : "id"),
+    () => (entityClass ? resolveRefLabelField(entityClass, field.refLabel) : "id"),
     [entityClass, field.refLabel]
   )
 

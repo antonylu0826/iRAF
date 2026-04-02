@@ -1,21 +1,20 @@
-// modules/sample/src/entities/DetailItem.ts
+// modules/sample/src/entities/DetailFirst.ts
 import { iEntity, iField, BaseObject } from "@iraf/core"
 
 /**
- * DetailItem — MasterItem 的明細行。
- * 涵蓋多種欄位類型，作為 SubGrid 各 control 表現的示範。
+ * DetailFirst — MasterItem 的第一組明細。
  */
-@iEntity("detail-items", {
-  caption: "明細項目",
+@iEntity("detail-firsts", {
+  caption: "明細一",
   icon: "ListTree",
   allowedRoles: {
-    read:   ["admins", "managers", "users"],
+    read: ["admins", "managers", "users"],
     create: ["admins", "managers", "users"],
     update: ["admins", "managers", "users"],
     delete: ["admins", "managers", "users"],
   },
 })
-export class DetailItem extends BaseObject {
+export class DetailFirst extends BaseObject {
   @iField.string({ caption: "品項名稱", required: true, order: 1 })
   name = ""
 
@@ -40,14 +39,6 @@ export class DetailItem extends BaseObject {
 
   @iField.string({ caption: "備註", control: "textarea", order: 7 })
   note = ""
-
-  @iField.string({
-    caption: "負責人",
-    ref: "users",
-    refLabel: "displayName",
-    order: 8,
-  })
-  assigneeId = ""
 
   @iField.string({ caption: "主項目 ID", hidden: true })
   masterId = ""

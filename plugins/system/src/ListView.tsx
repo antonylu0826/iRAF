@@ -4,6 +4,7 @@ import { remult } from "remult"
 import { EntityRegistry, EventBus, EVENTS, evalRoleCheck } from "@iraf/core"
 import { Plus, Loader2, Pencil, Trash2 } from "lucide-react"
 import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, useAuth, SlotArea } from "@iraf/react"
+import { resolveRefLabelField } from "./utils/refLabel"
 
 interface ListViewProps {
   entityClass: new () => object
@@ -64,13 +65,7 @@ export function ListView({ entityClass, basePath }: ListViewProps) {
             where: { id: { $in: ids } } as any,
             limit: ids.length,
           })
-          const refFieldMeta = EntityRegistry.getFieldMeta(refClass)
-          const labelField =
-            fm.refLabel ??
-            Object.entries(refFieldMeta)
-              .filter(([key, f]) => !f.hidden && f._type === "string" && key !== "id")
-              .sort(([, a], [, b]) => (a.order ?? 999) - (b.order ?? 999))[0]?.[0] ??
-            "id"
+          const labelField = resolveRefLabelField(refClass, fm.refLabel)
           const map: Record<string, string> = {}
           for (const rec of records) {
             map[String(rec.id)] = String(rec[labelField] ?? rec.id)

@@ -160,6 +160,12 @@ export function DetailView({
 
   const auditEntries = Object.entries(fieldMeta).filter(([, fm]) => fm.auditField)
 
+  const visibleActions = actions
+    .filter(({ meta: am }) => hasRole(user?.roles ?? [], am.allowedRoles))
+  const hasDetailToolbarSlots = PluginRegistry
+    .getAll("slot")
+    .some((p) => p.name.startsWith("detail-toolbar:"))
+
   return (
     <div className="w-full space-y-8 pb-12">
       {/* Header */}
@@ -187,11 +193,9 @@ export function DetailView({
       <Separator />
 
       {/* Action Bar + detail-toolbar slot */}
-      {!isNew && (
+      {!isNew && (visibleActions.length > 0 || hasDetailToolbarSlots) && (
         <div className="flex flex-wrap gap-2 px-1">
-          {actions
-            .filter(({ meta: am }) => hasRole(user?.roles ?? [], am.allowedRoles))
-            .map(({ controllerClass, meta: am }) => {
+          {visibleActions.map(({ controllerClass, meta: am }) => {
               const IconComp = am.icon
                 ? ((LucideIcons as unknown as Record<string, React.ComponentType<any>>)[am.icon] ?? null)
                 : null
@@ -242,10 +246,12 @@ export function DetailView({
                       (field.writeRoles && !hasRole(user?.roles ?? [], field.writeRoles))
                     return (
                       <div key={field.key} className={cn("space-y-1.5", field._type === "collection" && "col-span-full")}>
-                        <label className="text-[11px] font-bold leading-none text-muted-foreground uppercase tracking-tight">
-                          {field.caption ?? field.key}
-                          {field.required && <span className="text-destructive ml-1">*</span>}
-                        </label>
+                        {field._type !== "collection" && (
+                          <label className="text-[11px] font-bold leading-none text-muted-foreground uppercase tracking-tight">
+                            {field.caption ?? field.key}
+                            {field.required && <span className="text-destructive ml-1">*</span>}
+                          </label>
+                        )}
                         {(() => {
                           const controlName =
                             field.control ??

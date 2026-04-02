@@ -27,7 +27,7 @@ export { ServiceRegistry } from "./registry/ServiceRegistry"
 export type { IModuleDef, IModuleOptions, IMenuItem, IModulePlugin } from "./types/module"
 
 // ─── Service types ────────────────────────────────────────────────────────────
-export type { IAuthProvider, IAuthUser, INotifier } from "./types/services"
+export type { IAuthProvider, IAuthUser, INotifier, IPasswordHasher } from "./types/services"
 export { SERVICE_KEYS } from "./types/services"
 
 // ─── Events ───────────────────────────────────────────────────────────────────

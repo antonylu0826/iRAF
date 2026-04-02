@@ -140,7 +140,7 @@ export class ModuleRegistry {
   /**
    * 執行所有模組的 client 側初始化（onInit）。
    * 依 use() 的登記順序依序執行，支援 async。
-   * 應在 initPlugins() 之後、React render 之前呼叫。
+   * 應在 initPlugins() 之前、React render 之前呼叫。
    */
   static async initAll(): Promise<void> {
     for (const mod of this._modules) {

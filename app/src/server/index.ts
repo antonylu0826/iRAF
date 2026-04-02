@@ -4,7 +4,7 @@ import express from "express"
 import { remultExpress } from "remult/remult-express"
 import { remult } from "remult"
 import bcrypt from "bcrypt"
-import { EntityRegistry, ModuleRegistry, ServiceRegistry, SERVICE_KEYS } from "@iraf/core"
+import { EntityRegistry, ModuleRegistry, ServiceRegistry, SERVICE_KEYS, type IPasswordHasher } from "@iraf/core"
 import { AppUser } from "@iraf/module-system"
 import { JWT_SECRET, getUser, createAuthRouter } from "./auth"
 import { JwtAuthProvider } from "./JwtAuthProvider"
@@ -12,6 +12,10 @@ import "../modules" // 觸發 ModuleRegistry.use(...)
 
 // ─── 登記服務 ──────────────────────────────────────────────────────────────────
 ServiceRegistry.register(SERVICE_KEYS.AUTH, new JwtAuthProvider({ secret: JWT_SECRET }))
+ServiceRegistry.register<IPasswordHasher>(SERVICE_KEYS.PASSWORD_HASHER, {
+  hash: (password: string) => bcrypt.hash(password, 10),
+  compare: (password: string, hash: string) => bcrypt.compare(password, hash),
+})
 
 const app = express()
 app.use(express.json())
@@ -43,8 +47,14 @@ app.get("/", (_req, res) => {
 })
 
 const PORT = 3001
-app.listen(PORT, async () => {
+
+async function startServer() {
   // 執行所有模組的 server 側初始化
   await ModuleRegistry.serverInitAll()
-  console.log(`iRAF Demo Server started on http://localhost:${PORT}`)
-})
+
+  app.listen(PORT, () => {
+    console.log(`iRAF Demo Server started on http://localhost:${PORT}`)
+  })
+}
+
+startServer()

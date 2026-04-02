@@ -1,5 +1,5 @@
 import { remult } from "remult"
-import { iController, iAction } from "@iraf/core"
+import { iController, iAction, ServiceRegistry, SERVICE_KEYS, type IPasswordHasher } from "@iraf/core"
 import { AppUser } from "../entities/AppUser"
 
 @iController(AppUser)
@@ -12,11 +12,11 @@ export class UserController {
     if (!newPassword || newPassword.length < 6) {
       throw new Error("密碼長度至少需要 6 個字元")
     }
-    const { default: bcrypt } = await import("bcrypt")
+    const hasher = ServiceRegistry.require<IPasswordHasher>(SERVICE_KEYS.PASSWORD_HASHER)
     const repo = remult.repo(AppUser)
     const user = await repo.findId(id)
     if (!user) throw new Error("使用者不存在")
-    const passwordHash = await bcrypt.hash(newPassword, 10)
+    const passwordHash = await hasher.hash(newPassword)
     await repo.save({ ...user, passwordHash })
   }
 

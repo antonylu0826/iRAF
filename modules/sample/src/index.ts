@@ -3,6 +3,8 @@ import { defineModule } from "@iraf/core"
 import { FeatureGallery, FeatureGalleryController } from "./entities/FeatureGallery"
 import { MasterItem } from "./entities/MasterItem"
 import { DetailItem } from "./entities/DetailItem"
+import { DetailFirst } from "./entities/DetailFirst"
+import { DetailSecond } from "./entities/DetailSecond"
 
 /**
  * SampleModule — iRAF 全功能示範模組。
@@ -19,7 +21,7 @@ export const SampleModule = defineModule({
   caption: "範例展示",
   icon: "FlaskConical",
   description: "提供完整元數據配置、RBAC 權限與 iAction 的演示，以及 Master-Detail SubGrid 示範。",
-  entities: [FeatureGallery, MasterItem, DetailItem],
+  entities: [FeatureGallery, MasterItem, DetailItem, DetailFirst, DetailSecond],
   controllers: [FeatureGalleryController],
   menu: [
     { entity: FeatureGallery, caption: "功能展示", icon: "Component", order: 1 },
