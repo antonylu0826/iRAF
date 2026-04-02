@@ -170,7 +170,7 @@ export function DetailView({
     .some((p) => p.name.startsWith("detail-toolbar:"))
 
   return (
-    <div className="w-full space-y-8 pb-12">
+    <div className="w-full space-y-6 pb-10">
       {/* Header */}
       <div className="flex items-center justify-between px-1">
         <div className="space-y-1.5">
@@ -233,10 +233,10 @@ export function DetailView({
         )}
 
         {/* Field groups */}
-        <div className="space-y-8">
+        <div className="space-y-4">
           {Object.entries(groupedFields).map(([groupName, fields]) => (
-            <section key={groupName} className="space-y-4">
-              <div className="space-y-1.5">
+            <section key={groupName} className="space-y-2">
+              <div className="space-y-0.5">
                 <h3 className="text-base font-semibold tracking-tight">{groupName}</h3>
                 <Separator />
               </div>
