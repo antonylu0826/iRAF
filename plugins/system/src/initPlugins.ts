@@ -1,10 +1,10 @@
 /**
- * initPlugins — iRAF 框架內建插件自動登記。
+ * initPlugins — auto-register built-in iRAF plugins.
  *
- * 在 app bootstrap 時呼叫一次（main.tsx）。
- * 登記：6 個內建 control + 預設 list-view / detail-view。
+ * Call once at app bootstrap (main.tsx).
+ * Registers built-in controls plus default list-view / detail-view.
  *
- * 外部插件在 initPlugins 之後呼叫 PluginRegistry.register() 即可擴充。
+ * External plugins can register after initPlugins via PluginRegistry.register().
  */
 import { PluginRegistry } from "@iraf/react"
 import { ListView } from "./ListView"
@@ -22,6 +22,7 @@ import { SelectInput } from "./controls/SelectInput"
 import { LookupInput } from "./controls/LookupInput"
 import { SubGrid } from "./controls/SubGrid"
 import { ThemeToggle } from "./slots/ThemeToggle"
+import { LanguageToggle } from "./slots/LanguageToggle"
 
 let _initialized = false
 
@@ -32,7 +33,7 @@ export function initPlugins(): void {
   // ─── list-view ──────────────────────────────────────────────────────────────
   PluginRegistry.register("list-view", {
     name: "list",
-    caption: "表格清單",
+    caption: "Table List",
     component: ListView,
   })
   PluginRegistry.setDefault("list-view", "*", "list")
@@ -40,28 +41,33 @@ export function initPlugins(): void {
   // ─── detail-view ────────────────────────────────────────────────────────────
   PluginRegistry.register("detail-view", {
     name: "detail",
-    caption: "表單",
+    caption: "Form",
     component: DetailView,
   })
   PluginRegistry.setDefault("detail-view", "*", "detail")
 
   // ─── controls ───────────────────────────────────────────────────────────────
-  PluginRegistry.register("control", { name: "text",     caption: "文字",     component: TextInput     })
-  PluginRegistry.register("control", { name: "number",   caption: "數字",     component: NumberInput   })
-  PluginRegistry.register("control", { name: "date",     caption: "日期",     component: DateInput     })
-  PluginRegistry.register("control", { name: "boolean",  caption: "勾選",     component: Checkbox      })
-  PluginRegistry.register("control", { name: "textarea", caption: "多行文字", component: TextareaInput })
-  PluginRegistry.register("control", { name: "password", caption: "密碼",     component: PasswordInput })
-  PluginRegistry.register("control", { name: "roles",    caption: "角色選擇",  component: RolesInput    })
-  PluginRegistry.register("control", { name: "select",   caption: "下拉選單",  component: SelectInput   })
-  PluginRegistry.register("control", { name: "lookup",   caption: "關聯選取",  component: LookupInput   })
-  PluginRegistry.register("control", { name: "subgrid",  caption: "子表格",    component: SubGrid       })
+  PluginRegistry.register("control", { name: "text",     caption: "Text",          component: TextInput     })
+  PluginRegistry.register("control", { name: "number",   caption: "Number",        component: NumberInput   })
+  PluginRegistry.register("control", { name: "date",     caption: "Date",          component: DateInput     })
+  PluginRegistry.register("control", { name: "boolean",  caption: "Checkbox",      component: Checkbox      })
+  PluginRegistry.register("control", { name: "textarea", caption: "Textarea",      component: TextareaInput })
+  PluginRegistry.register("control", { name: "password", caption: "Password",      component: PasswordInput })
+  PluginRegistry.register("control", { name: "roles",    caption: "Roles",         component: RolesInput    })
+  PluginRegistry.register("control", { name: "select",   caption: "Select",        component: SelectInput   })
+  PluginRegistry.register("control", { name: "lookup",   caption: "Lookup",        component: LookupInput   })
+  PluginRegistry.register("control", { name: "subgrid",  caption: "Subgrid",       component: SubGrid       })
 
   // ─── slots ─────────────────────────────────────────────────────────────────
   PluginRegistry.register("slot", {
     name: "appbar:theme-toggle",
-    caption: "主題切換",
+    caption: "Theme Toggle",
     component: ThemeToggle,
+  })
+  PluginRegistry.register("slot", {
+    name: "appbar:language-toggle",
+    caption: "Language Toggle",
+    component: LanguageToggle,
   })
 
   // ─── field type → default control ───────────────────────────────────────────

@@ -2,9 +2,9 @@ import "reflect-metadata"
 import { Fields, Validators } from "remult"
 import { IRAF_FIELD_KEY, type IFieldMeta, type IFieldOptions, type ICollectionMeta } from "../types/metadata"
 
-// ─── 內部工具函式 ──────────────────────────────────────────────────────────────
+// ─── Internal helpers ─────────────────────────────────────────────────────────
 
-/** 從 IFieldOptions 中取出 iRAF UI hints */
+/** Extract iRAF UI hints from IFieldOptions */
 function extractFieldMeta(options: IFieldOptions): IFieldMeta {
   const meta: IFieldMeta = {}
   if (options.caption !== undefined) meta.caption = options.caption
@@ -26,7 +26,7 @@ function extractFieldMeta(options: IFieldOptions): IFieldMeta {
   return meta
 }
 
-/** 將 iRAF 欄位 metadata 附加到類別的 Reflect metadata 上 */
+/** Attach iRAF field metadata to class Reflect metadata */
 function storeFieldMeta(
   target: object,
   propertyKey: string | symbol,
@@ -39,7 +39,7 @@ function storeFieldMeta(
   Reflect.defineMetadata(IRAF_FIELD_KEY, existing, ctor)
 }
 
-/** 將 validate 函式轉換為 Remult validator */
+/** Convert validate function into Remult validator */
 function buildRemultValidators(options: IFieldOptions) {
   const validators: any[] = []
   if (options.required) validators.push(Validators.required)
@@ -58,7 +58,7 @@ function buildRemultValidators(options: IFieldOptions) {
 
 export const iField = {
   /**
-   * 字串欄位。包裹 Remult `@Fields.string()`。
+   * String field. Wraps Remult `@Fields.string()`.
    */
   string(options: IFieldOptions = {}): PropertyDecorator {
     return (target: object, propertyKey: string | symbol) => {
@@ -71,7 +71,7 @@ export const iField = {
   },
 
   /**
-   * 數字欄位。包裹 Remult `@Fields.number()`。
+   * Number field. Wraps Remult `@Fields.number()`.
    */
   number(options: IFieldOptions = {}): PropertyDecorator {
     return (target: object, propertyKey: string | symbol) => {
@@ -84,7 +84,7 @@ export const iField = {
   },
 
   /**
-   * 日期欄位。包裹 Remult `@Fields.date()`。
+   * Date field. Wraps Remult `@Fields.date()`.
    */
   date(options: IFieldOptions = {}): PropertyDecorator {
     return (target: object, propertyKey: string | symbol) => {
@@ -97,7 +97,7 @@ export const iField = {
   },
 
   /**
-   * 布林欄位。包裹 Remult `@Fields.boolean()`。
+   * Boolean field. Wraps Remult `@Fields.boolean()`.
    */
   boolean(options: IFieldOptions = {}): PropertyDecorator {
     return (target: object, propertyKey: string | symbol) => {
@@ -109,7 +109,7 @@ export const iField = {
   },
 
   /**
-   * JSON 欄位（陣列、物件）。包裹 Remult `@Fields.json()`。
+   * JSON field (array/object). Wraps Remult `@Fields.json()`.
    */
   json(options: IFieldOptions = {}): PropertyDecorator {
     return (target: object, propertyKey: string | symbol) => {
@@ -121,14 +121,14 @@ export const iField = {
   },
 
   /**
-   * 子集合欄位（Master-Detail SubGrid）。
+   * Collection field (Master-Detail SubGrid).
    *
-   * 此欄位本身不儲存資料，子項目透過外鍵關聯存在獨立實體中。
-   * DetailView 會自動渲染為 SubGrid control。
+   * This field doesn't store data directly; child items are stored in a separate entity
+   * via a foreign key. DetailView renders it as a SubGrid control.
    *
    * ```ts
    * @iField.collection({
-   *   caption: "明細項目",
+   *   caption: "Detail Items",
    *   entity: () => DetailItem,
    *   foreignKey: "masterId",
    *   order: 10,
@@ -138,7 +138,7 @@ export const iField = {
    */
   collection(options: IFieldOptions & ICollectionMeta): PropertyDecorator {
     return (target: object, propertyKey: string | symbol) => {
-      // 使用 Fields.json() 讓 Remult 認識此屬性，實際資料由 SubGrid 直接查詢子表
+      // Use Fields.json() so Remult recognizes this property; SubGrid reads from child table directly
       Fields.json({ caption: options.caption })(target, propertyKey as string)
       const { entity, foreignKey, ...rest } = options
       storeFieldMeta(target, propertyKey, {

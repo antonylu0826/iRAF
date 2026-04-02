@@ -9,16 +9,15 @@ import {
 } from "../types/metadata"
 
 /**
- * EntityRegistry — iRAF 實體登記簿。
+ * EntityRegistry — iRAF entity registry.
  *
- * 所有 BO 必須在此登記，框架才能：
- * - 生成左側導航選單
- * - 為每個實體建立 ListView / DetailView 路由
- * - 套用權限控制
+ * All BOs must be registered here so the framework can:
+ * - generate sidebar navigation
+ * - create ListView / DetailView routes
+ * - apply permission controls
  *
- * 使用方式：
+ * Example:
  * ```ts
- * // apps/demo/src/shared/index.ts
  * EntityRegistry.register(Customer, Order, Product)
  * ```
  */
@@ -26,14 +25,14 @@ export class EntityRegistry {
   private static _entities: Function[] = []
   private static _controllers: Function[] = []
 
-  /** 由 @iController 呼叫，直接登記 controller（不依賴 _entities）。 */
+  /** Called by @iController to register controllers directly (independent of _entities). */
   static registerController(ctrl: Function): void {
     if (!this._controllers.includes(ctrl)) {
       this._controllers.push(ctrl)
     }
   }
 
-  /** 登記一或多個 BO。重複登記同一個 class 會被忽略。 */
+  /** Register one or more BOs. Duplicate classes are ignored. */
   static register(...entities: Function[]): void {
     for (const entity of entities) {
       if (!this._entities.includes(entity)) {
@@ -42,12 +41,12 @@ export class EntityRegistry {
     }
   }
 
-  /** 取得所有已登記的 BO class。 */
+  /** Get all registered BO classes. */
   static getAll(): Function[] {
     return [...this._entities]
   }
 
-  /** 取得所有已登記的 BO class 及其 iRAF entity metadata（供 UI 層使用）。 */
+  /** Get all registered BO classes with iRAF entity metadata (for UI). */
   static getAllWithMeta(): Array<{ entityClass: Function; meta: IEntityMeta }> {
     return this._entities
       .map((entityClass) => {
@@ -58,24 +57,24 @@ export class EntityRegistry {
   }
 
   /**
-   * 取得指定 BO 的 iRAF 實體 metadata（caption、icon、module 等）。
-   * 若該 class 未以 @iEntity 裝飾，回傳 undefined。
+   * Get iRAF entity metadata for a BO (caption, icon, etc.).
+   * Returns undefined if not decorated by @iEntity.
    */
   static getMeta(entityClass: Function): IEntityMeta | undefined {
     return Reflect.getMetadata(IRAF_ENTITY_KEY, entityClass)
   }
 
   /**
-   * 取得指定 BO 所有欄位的 iRAF 欄位 metadata（group、readOnly、hidden 等）。
-   * 若無 metadata，回傳空物件。
+   * Get field metadata for a BO (group, readOnly, hidden, etc.).
+   * Returns empty object if none.
    */
   static getFieldMeta(entityClass: Function): Record<string, IFieldMeta> {
     return Reflect.getOwnMetadata(IRAF_FIELD_KEY, entityClass) ?? {}
   }
 
   /**
-   * 取得指定 BO 所有關聯 Controller 的 @iAction 列表。
-   * 供 DetailView 渲染 Action Bar 使用。
+   * Get @iAction list for controllers associated with a BO.
+   * Used by DetailView action bar rendering.
    */
   static getActions(
     entityClass: Function
@@ -94,16 +93,16 @@ export class EntityRegistry {
   }
 
   /**
-   * 取得所有已關聯的 Controller class。
-   * 供 remultExpress({ controllers: EntityRegistry.getAllControllers() }) 使用。
-   * 由 @iController 直接維護，不依賴 _entities 是否已填入。
+   * Get all registered controller classes.
+   * Used by remultExpress({ controllers: EntityRegistry.getAllControllers() }).
+   * Maintained by @iController; does not depend on _entities.
    */
   static getAllControllers(): Function[] {
     return [...this._controllers]
   }
 
   /**
-   * 依 entity key 取得對應的 class。供 LookupInput 等動態解析使用。
+   * Get entity class by key. Used for LookupInput dynamic resolution.
    */
   static getByKey(key: string): Function | undefined {
     return this._entities.find((e) => {
@@ -112,7 +111,7 @@ export class EntityRegistry {
     })
   }
 
-  /** 清除所有登記（主要用於測試）。 */
+  /** Clear all registrations (mainly for tests). */
   static clear(): void {
     this._entities = []
     this._controllers = []

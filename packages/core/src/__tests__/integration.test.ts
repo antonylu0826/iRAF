@@ -5,34 +5,34 @@ import { iEntity } from "../decorators/iEntity"
 import { iField } from "../decorators/iField"
 import { BaseObject } from "../base/BaseObject"
 
-// ─── 測試用 BO ─────────────────────────────────────────────────────────────────
+// ─── Test BO ─────────────────────────────────────────────────────────────────
 @iEntity("integ_customers", {
-  caption: "整合測試客戶",
+  caption: "Integration Test Customer",
   allowApiCrud: true,
 })
 class IntegCustomer extends BaseObject {
-  @iField.string({ caption: "姓名", required: true })
+  @iField.string({ caption: "Name", required: true })
   name = ""
 
-  @iField.string({ caption: "電話", group: "聯絡資訊" })
+  @iField.string({ caption: "Phone", group: "Contact Info" })
   phone = ""
 }
 
-// ─── 測試 ─────────────────────────────────────────────────────────────────────
+// ─── Tests ───────────────────────────────────────────────────────────────────
 describe("BaseObject + @iEntity integration", () => {
   beforeEach(() => {
     remult.dataProvider = new InMemoryDataProvider()
   })
 
   it("auto-generates a non-empty id on insert", async () => {
-    const customer = await remult.repo(IntegCustomer).insert({ name: "王小明" })
+    const customer = await remult.repo(IntegCustomer).insert({ name: "Test User" })
     expect(customer.id).toBeTruthy()
     expect(customer.id.length).toBeGreaterThan(0)
   })
 
   it("auto-fills createdAt on insert", async () => {
     const before = new Date()
-    const customer = await remult.repo(IntegCustomer).insert({ name: "王小明" })
+    const customer = await remult.repo(IntegCustomer).insert({ name: "Test User" })
     const after = new Date()
     expect(customer.createdAt).toBeInstanceOf(Date)
     expect(customer.createdAt!.getTime()).toBeGreaterThanOrEqual(before.getTime())
@@ -40,15 +40,15 @@ describe("BaseObject + @iEntity integration", () => {
   })
 
   it("auto-fills updatedAt on insert", async () => {
-    const customer = await remult.repo(IntegCustomer).insert({ name: "王小明" })
+    const customer = await remult.repo(IntegCustomer).insert({ name: "Test User" })
     expect(customer.updatedAt).toBeInstanceOf(Date)
   })
 
   it("auto-fills updatedAt on update", async () => {
-    const customer = await remult.repo(IntegCustomer).insert({ name: "王小明" })
+    const customer = await remult.repo(IntegCustomer).insert({ name: "Test User" })
     const original = customer.updatedAt!.getTime()
 
-    // 等待 1ms 確保時間差異
+    // Wait 1ms to ensure time difference
     await new Promise((r) => setTimeout(r, 1))
 
     const updated = await remult.repo(IntegCustomer).save({
@@ -59,7 +59,7 @@ describe("BaseObject + @iEntity integration", () => {
   })
 
   it("createdAt does not change on update", async () => {
-    const customer = await remult.repo(IntegCustomer).insert({ name: "王小明" })
+    const customer = await remult.repo(IntegCustomer).insert({ name: "Test User" })
     const originalCreatedAt = customer.createdAt!.getTime()
 
     await new Promise((r) => setTimeout(r, 1))
@@ -78,8 +78,8 @@ describe("BaseObject + @iEntity integration", () => {
   })
 
   it("can find a saved entity by id", async () => {
-    const customer = await remult.repo(IntegCustomer).insert({ name: "李四" })
+    const customer = await remult.repo(IntegCustomer).insert({ name: "Sample User" })
     const found = await remult.repo(IntegCustomer).findId(customer.id)
-    expect(found?.name).toBe("李四")
+    expect(found?.name).toBe("Sample User")
   })
 })

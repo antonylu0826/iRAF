@@ -3,37 +3,37 @@
 // ─── Menu ─────────────────────────────────────────────────────────────────────
 
 export interface IMenuItem {
-  /** 項目類型（預設 "entity"） */
+  /** Item type (default "entity") */
   type?: "entity" | "link" | "separator"
-  /** type: "entity" — 指向的 BO class */
+  /** type: "entity" — target BO class */
   entity?: Function
-  /** 覆寫 entity caption */
+  /** Override entity caption */
   caption?: string
-  /** 覆寫 entity icon（lucide-react 圖示名稱） */
+  /** Override entity icon (lucide-react icon name) */
   icon?: string
-  /** type: "link" — 目標路徑 */
+  /** type: "link" — target path */
   path?: string
-  /** 排序（數字越小越前） */
+  /** Order (smaller comes first) */
   order?: number
 }
 
 // ─── Plugin ───────────────────────────────────────────────────────────────────
 
-/** 模組自帶的插件（交由 packages/react 的 initModulePlugins 處理） */
+/** Module-provided plugins (handled by packages/react initModulePlugins) */
 export interface IModulePlugin {
   category: string
   plugin: {
     name: string
     caption: string
     icon?: string
-    /** React.ComponentType<any>（core 不引入 React，以 unknown 宣告） */
+    /** React.ComponentType<any> (core doesn't depend on React; typed as unknown) */
     component: unknown
   }
 }
 
 // ─── Module ───────────────────────────────────────────────────────────────────
 
-/** defineModule() 的輸入選項 */
+/** Input options for defineModule() */
 export interface IModuleOptions {
   key: string
   caption: string
@@ -41,39 +41,41 @@ export interface IModuleOptions {
   description?: string
   entities?: Function[]
   controllers?: Function[]
-  /** 自訂選單結構與順序。未指定則自動從 entities 依序生成 */
+  /** Custom menu structure and order. If omitted, auto-generated from entities. */
   menu?: IMenuItem[]
-  /** Dashboard React component（預留，Phase 5b 不實作路由） */
+  /** Dashboard React component (reserved; Phase 5b doesn't implement routing) */
   dashboard?: unknown
-  /** 硬依賴的模組 key。use() 時若缺少則拋錯 */
+  /** Required module keys. Throws in use() if missing. */
   requires?: string[]
-  /** 模組自帶的插件（由 packages/react 處理） */
+  /** Module-provided plugins (handled by packages/react) */
   plugins?: IModulePlugin[]
-  /** 模組自有角色宣告（由 ModuleRegistry.getAllRoles() 聚合） */
+  /** Module-defined roles (aggregated by ModuleRegistry.getAllRoles()) */
   roles?: string[]
-  /** 控制 Sidebar 模組可視性：只有具備指定角色的使用者才能看到此模組 */
+  /** Sidebar visibility: only users with these roles can see the module */
   allowedRoles?: string[]
+  /** Module-level i18n dictionary (lang -> key/value) */
+  i18n?: Record<string, Record<string, string>>
 
   // ─── Lifecycle hooks ────────────────────────────────────────────────────────
 
   /**
-   * Client 側初始化 hook。在 React render 前、initPlugins() 之前執行。
-   * 適合用於：登記 slot plugins、訂閱 EventBus、設定 client 端服務。
+   * Client-side init hook. Runs before React render and initPlugins().
+   * Suitable for: registering slot plugins, subscribing EventBus, client services setup.
    */
   onInit?: () => void | Promise<void>
 
   /**
-   * Server 側初始化 hook。在 remult 啟動後執行。
-   * 適合用於：初始化 WebSocket、排程任務、server 端服務設定。
+   * Server-side init hook. Runs after remult starts.
+   * Suitable for: WebSocket setup, scheduled tasks, server services.
    */
   onServerInit?: () => void | Promise<void>
 
   /**
-   * 模組銷毀 hook。主要用於測試清理，或未來支援模組熱替換。
-   * 適合用於：取消 EventBus 訂閱、清除 timer 等。
+   * Module destroy hook. Mainly for tests or future hot-reload support.
+   * Suitable for: EventBus unsubscription, clearing timers, etc.
    */
   onDestroy?: () => void
 }
 
-/** 已登記的模組定義（等同 IModuleOptions，由 defineModule 回傳） */
+/** Registered module definition (Readonly IModuleOptions returned by defineModule) */
 export type IModuleDef = Readonly<IModuleOptions>

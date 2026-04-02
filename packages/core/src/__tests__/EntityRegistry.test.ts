@@ -5,17 +5,17 @@ import { iField } from "../decorators/iField"
 import { BaseObject } from "../base/BaseObject"
 import { EntityRegistry } from "../registry/EntityRegistry"
 
-// 測試用 BO（每個測試重新建立）
+// Test BOs (recreated per test)
 function makeTestEntities() {
-  @iEntity("reg_customers", { caption: "客戶", icon: "Users", allowApiCrud: true })
+  @iEntity("reg_customers", { caption: "Customer", icon: "Users", allowApiCrud: true })
   class RegCustomer extends BaseObject {
-    @iField.string({ caption: "姓名", required: true })
+    @iField.string({ caption: "Name", required: true })
     name = ""
   }
 
-  @iEntity("reg_products", { caption: "產品", icon: "Package", allowApiCrud: true })
+  @iEntity("reg_products", { caption: "Product", icon: "Package", allowApiCrud: true })
   class RegProduct extends BaseObject {
-    @iField.string({ caption: "品名" })
+    @iField.string({ caption: "Product Name" })
     productName = ""
   }
 
@@ -51,7 +51,7 @@ describe("EntityRegistry", () => {
     const { RegCustomer } = makeTestEntities()
     EntityRegistry.register(RegCustomer)
     const meta = EntityRegistry.getMeta(RegCustomer)
-    expect(meta?.caption).toBe("客戶")
+    expect(meta?.caption).toBe("Customer")
     expect(meta?.icon).toBe("Users")
     expect(meta?.key).toBe("reg_customers")
   })
@@ -60,7 +60,7 @@ describe("EntityRegistry", () => {
     const { RegCustomer } = makeTestEntities()
     EntityRegistry.register(RegCustomer)
     const fieldMeta = EntityRegistry.getFieldMeta(RegCustomer)
-    expect(fieldMeta["name"]).toMatchObject({ caption: "姓名", required: true })
+    expect(fieldMeta["name"]).toMatchObject({ caption: "Name", required: true })
   })
 
   it("clear() empties the registry", () => {

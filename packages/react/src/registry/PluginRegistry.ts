@@ -1,7 +1,7 @@
 import type { IFieldMeta } from "@iraf/core"
 import type React from "react"
 
-// ─── Props 契約 ───────────────────────────────────────────────────────────────
+// ─── Props contracts ─────────────────────────────────────────────────────────
 
 export interface IControlProps {
   value: any
@@ -28,21 +28,23 @@ export interface IPluginMeta {
   name: string
   caption: string
   icon?: string
-  /** 同步元件 或 lazy import 函式（預留 async 支援） */
+  /** Sync component or lazy import factory (reserved for async). */
   component:
     | React.ComponentType<any>
     | (() => Promise<{ default: React.ComponentType<any> }>)
+  /** Plugin-specific translations (lang -> { key: value }). */
+  translations?: Record<string, Record<string, string>>
 }
 
 // ─── PluginRegistry ───────────────────────────────────────────────────────────
 
 /**
- * PluginRegistry — iRAF 插件登記簿。
+ * PluginRegistry — the iRAF plugin registry.
  *
- * 統一管理所有可替換的 UI 元件，以 category（分類）+ name（名稱）為 key。
+ * Manages all swappable UI components by category + name.
  *
  * ```ts
- * PluginRegistry.register("control", { name: "text", caption: "文字", component: TextInput })
+ * PluginRegistry.register("control", { name: "text", caption: "Text", component: TextInput })
  * PluginRegistry.resolve("control", "text")  // → IPluginMeta
  * PluginRegistry.setDefault("control", "string", "text")
  * PluginRegistry.resolveDefault("control", "string")  // → IPluginMeta | undefined
@@ -56,7 +58,7 @@ export class PluginRegistry {
   private static _defaults: Map<string, Map<string, string>> = new Map()
 
   /**
-   * 登記插件。同 category 下 name 重複時直接報錯，避免意外覆蓋。
+   * Register a plugin. Throws if the name already exists in the category.
    */
   static register(category: string, plugin: IPluginMeta): void {
     if (!this._plugins.has(category)) {
@@ -65,21 +67,30 @@ export class PluginRegistry {
     const map = this._plugins.get(category)!
     if (map.has(plugin.name)) {
       throw new Error(
-        `[PluginRegistry] 插件 "${plugin.name}" 在 category "${category}" 已存在。請使用不同的 name，或先呼叫 unregister()。`
+        `[PluginRegistry] Plugin "${plugin.name}" already exists in category "${category}". Use a different name or call unregister() first.`
       )
     }
     map.set(plugin.name, plugin)
+
+    if (plugin.translations) {
+      const ns = `iraf:plugin:${category}:${plugin.name}`
+      for (const [lang, dict] of Object.entries(plugin.translations)) {
+        import("../i18n/registry").then(({ I18nRegistry }) => {
+          I18nRegistry.addBundle(ns, lang, dict)
+        })
+      }
+    }
   }
 
   /**
-   * 取得指定 category + name 的插件。找不到時回傳 undefined。
+   * Resolve a plugin by category + name. Returns undefined if not found.
    */
   static resolve(category: string, name: string): IPluginMeta | undefined {
     return this._plugins.get(category)?.get(name)
   }
 
   /**
-   * 取得指定 category 的所有插件。
+   * Get all plugins under a category.
    */
   static getAll(category: string): IPluginMeta[] {
     const map = this._plugins.get(category)
@@ -87,8 +98,8 @@ export class PluginRegistry {
   }
 
   /**
-   * 設定 category 下某 typeKey 的預設插件名稱。
-   * typeKey 可為具體型別（"string"、"number"）或萬用字元 "*"。
+   * Set default plugin name for a category + typeKey.
+   * typeKey can be a concrete type ("string", "number") or wildcard "*".
    */
   static setDefault(category: string, typeKey: string, pluginName: string): void {
     if (!this._defaults.has(category)) {
@@ -98,7 +109,7 @@ export class PluginRegistry {
   }
 
   /**
-   * 依 typeKey 解析預設插件。先查具體型別，找不到再查 "*"。
+   * Resolve default plugin by typeKey. Falls back to "*".
    */
   static resolveDefault(category: string, typeKey: string): IPluginMeta | undefined {
     const defaults = this._defaults.get(category)
@@ -109,13 +120,13 @@ export class PluginRegistry {
   }
 
   /**
-   * 移除插件（用於測試或重新登記）。
+   * Remove a plugin (useful for tests or re-registration).
    */
   static unregister(category: string, name: string): void {
     this._plugins.get(category)?.delete(name)
   }
 
-  /** 清除所有登記（主要用於測試）。 */
+  /** Clear all registrations (mainly for tests). */
   static clear(): void {
     this._plugins.clear()
     this._defaults.clear()

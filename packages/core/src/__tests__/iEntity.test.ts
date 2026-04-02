@@ -6,7 +6,7 @@ import { iEntity } from "../decorators/iEntity"
 describe("iEntity", () => {
   it("stores caption in iRAF entity metadata", () => {
     @iEntity("test_customers", {
-      caption: "客戶",
+      caption: "Customer",
       icon: "Users",
       allowApiCrud: true,
     })
@@ -15,12 +15,12 @@ describe("iEntity", () => {
       name = ""
     }
     const meta: IEntityMeta = Reflect.getMetadata(IRAF_ENTITY_KEY, TestCustomer)
-    expect(meta.caption).toBe("客戶")
+    expect(meta.caption).toBe("Customer")
   })
 
   it("stores icon in iRAF entity metadata", () => {
     @iEntity("test_products", {
-      caption: "產品",
+      caption: "Product",
       icon: "Package",
       allowApiCrud: true,
     })
@@ -34,7 +34,7 @@ describe("iEntity", () => {
 
   it("stores entity key in iRAF entity metadata", () => {
     @iEntity("test_orders", {
-      caption: "訂單",
+      caption: "Order",
       allowApiCrud: true,
     })
     class TestOrder {
@@ -46,7 +46,7 @@ describe("iEntity", () => {
 
   it("does not store saving hook in metadata", () => {
     @iEntity("test_items", {
-      caption: "項目",
+      caption: "Item",
       allowApiCrud: true,
       saving: async () => {},
     })

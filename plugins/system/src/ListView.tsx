@@ -1,25 +1,30 @@
 import React, { useEffect, useState } from "react"
 import { useNavigate } from "react-router"
 import { remult } from "remult"
-import { EntityRegistry, EventBus, EVENTS, evalRoleCheck } from "@iraf/core"
+import { EntityRegistry, EventBus, EVENTS, evalRoleCheck, ModuleRegistry } from "@iraf/core"
 import { Plus, Loader2, Pencil, Trash2 } from "lucide-react"
-import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, useAuth, SlotArea } from "@iraf/react"
+import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, useAuth, SlotArea, useI18n } from "@iraf/react"
 import { prefetchLabels } from "./utils/refLabelCache"
 
 interface ListViewProps {
   entityClass: new () => object
   viewOptions?: Record<string, any>
-  /** 路由基礎路徑，例如 "/sales/customers"。由 iRAFApp 傳入 */
+  /** Base route path, e.g. "/sales/customers". Provided by iRAFApp. */
   basePath?: string
 }
 
 
 export function ListView({ entityClass, basePath }: ListViewProps) {
   const navigate = useNavigate()
+  const { t, i18n } = useI18n("iraf:core")
   const { user } = useAuth()
   const meta = EntityRegistry.getMeta(entityClass as unknown as Function)
   const base = basePath ?? (meta ? `/${meta.key}` : "")
   const fieldMeta = EntityRegistry.getFieldMeta(entityClass as unknown as Function)
+  const moduleKey = ModuleRegistry.findModuleByEntity(entityClass as unknown as Function)?.key
+  const moduleNs = moduleKey ? `iraf:module:${moduleKey}` : undefined
+  const tModule = (key?: string, fallback?: string) =>
+    key ? t(key, { ns: moduleNs, defaultValue: fallback ?? key }) : (fallback ?? "")
   const canCreate = evalRoleCheck(meta?.allowedRoles?.create, user)
   // Row-level checks (evaluated per row in render)
   const canDeleteRow = (row: object) => evalRoleCheck(meta?.allowedRoles?.delete, user, row)
@@ -70,7 +75,7 @@ export function ListView({ entityClass, basePath }: ListViewProps) {
 
   const handleDelete = async (e: React.MouseEvent<HTMLElement>, id: string) => {
     e.stopPropagation()
-    if (!confirm("確定要刪除這筆資料嗎？")) return
+    if (!confirm(t("confirmDelete"))) return
     setDeletingId(id)
     try {
       await EventBus.emit(EVENTS.ENTITY_DELETING, { entityClass, id })
@@ -89,14 +94,16 @@ export function ListView({ entityClass, basePath }: ListViewProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">{meta.caption}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {tModule(meta.caption, meta.caption)}
+        </h1>
         <div className="flex items-center gap-2">
-          {/* list-toolbar slot — 新增按鈕左側 */}
+          {/* list-toolbar slot — left of add button */}
           <SlotArea prefix="list-toolbar" context={{ entityClass, meta }} />
           {canCreate && (
             <Button onClick={() => navigate(`${base}/new`)} size="sm">
               <Plus className="h-4 w-4" />
-              新增
+              {t("add")}
             </Button>
           )}
         </div>
@@ -105,7 +112,7 @@ export function ListView({ entityClass, basePath }: ListViewProps) {
       {loading && (
         <div className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
-          載入中…
+          {t("loading")}
         </div>
       )}
 
@@ -121,7 +128,9 @@ export function ListView({ entityClass, basePath }: ListViewProps) {
             <TableHeader>
               <TableRow>
                 {columns.map(([fieldKey, fm]) => (
-                  <TableHead key={fieldKey}>{fm.caption ?? fieldKey}</TableHead>
+                  <TableHead key={fieldKey}>
+                    {tModule(fm.caption, fm.caption ?? fieldKey)}
+                  </TableHead>
                 ))}
                 {showActions && <TableHead className="w-24" />}
               </TableRow>
@@ -133,7 +142,7 @@ export function ListView({ entityClass, basePath }: ListViewProps) {
                     colSpan={columns.length + (showActions ? 1 : 0)}
                     className="py-8 text-center text-muted-foreground"
                   >
-                    尚無資料
+                    {t("noData")}
                   </TableCell>
                 </TableRow>
               )}
@@ -153,7 +162,7 @@ export function ListView({ entityClass, basePath }: ListViewProps) {
                       if (fm._type === "boolean") {
                         cell = raw ? "✓" : "—"
                       } else if (fm._type === "date" && raw) {
-                        cell = new Date(raw).toLocaleDateString("zh-TW")
+                        cell = new Date(raw).toLocaleDateString(i18n.language)
                       } else if (fm.ref) {
                         cell = refLabels[fieldKey]?.[String(raw)] ?? String(raw ?? "")
                       } else {

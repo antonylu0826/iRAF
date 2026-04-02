@@ -6,27 +6,27 @@ import { iEntity } from "../decorators/iEntity"
 import { iField } from "../decorators/iField"
 import { BaseObject } from "../base/BaseObject"
 
-// ─── 測試用假實體 ──────────────────────────────────────────────────────────────
+// ─── Fake entities for tests ─────────────────────────────────────────────────
 
-@iEntity("test-customers", { caption: "客戶", icon: "Users" })
+@iEntity("test-customers", { caption: "Customer", icon: "Users" })
 class TestCustomer extends BaseObject {
-  @iField.string({ caption: "姓名" })
+  @iField.string({ caption: "Name" })
   name = ""
 }
 
-@iEntity("test-orders", { caption: "訂單" })
+@iEntity("test-orders", { caption: "Order" })
 class TestOrder extends BaseObject {
-  @iField.string({ caption: "品項" })
+  @iField.string({ caption: "Item" })
   item = ""
 }
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe("defineModule", () => {
-  it("回傳 frozen IModuleDef 物件", () => {
-    const mod = defineModule({ key: "sales", caption: "銷售", entities: [TestCustomer] })
+  it("returns a frozen IModuleDef object", () => {
+    const mod = defineModule({ key: "sales", caption: "Sales", entities: [TestCustomer] })
     expect(mod.key).toBe("sales")
-    expect(mod.caption).toBe("銷售")
+    expect(mod.caption).toBe("Sales")
     expect(Object.isFrozen(mod)).toBe(true)
   })
 })
@@ -38,61 +38,61 @@ describe("ModuleRegistry", () => {
 
   // ─── use / getAll / get ──────────────────────────────────────────────────────
 
-  it("use() 登記模組後 getAll() 回傳", () => {
-    const mod = defineModule({ key: "sales", caption: "銷售", entities: [TestCustomer] })
+  it("use() registers module then getAll() returns it", () => {
+    const mod = defineModule({ key: "sales", caption: "Sales", entities: [TestCustomer] })
     ModuleRegistry.use(mod)
     expect(ModuleRegistry.getAll()).toHaveLength(1)
     expect(ModuleRegistry.getAll()[0].key).toBe("sales")
   })
 
-  it("get() 可取得指定 key 的模組", () => {
-    const mod = defineModule({ key: "sales", caption: "銷售" })
+  it("get() returns module by key", () => {
+    const mod = defineModule({ key: "sales", caption: "Sales" })
     ModuleRegistry.use(mod)
-    expect(ModuleRegistry.get("sales")?.caption).toBe("銷售")
+    expect(ModuleRegistry.get("sales")?.caption).toBe("Sales")
     expect(ModuleRegistry.get("nonexistent")).toBeUndefined()
   })
 
-  it("use() 自動呼叫 EntityRegistry.register()", () => {
-    ModuleRegistry.use(defineModule({ key: "sales", caption: "銷售", entities: [TestCustomer] }))
+  it("use() automatically calls EntityRegistry.register()", () => {
+    ModuleRegistry.use(defineModule({ key: "sales", caption: "Sales", entities: [TestCustomer] }))
     expect(EntityRegistry.getAll()).toContain(TestCustomer)
   })
 
-  // ─── 重複 key ────────────────────────────────────────────────────────────────
+  // ─── Duplicate key ──────────────────────────────────────────────────────────
 
-  it("use() 重複 key 拋錯", () => {
-    ModuleRegistry.use(defineModule({ key: "sales", caption: "銷售" }))
+  it("use() throws on duplicate key", () => {
+    ModuleRegistry.use(defineModule({ key: "sales", caption: "Sales" }))
     expect(() =>
-      ModuleRegistry.use(defineModule({ key: "sales", caption: "銷售 2" }))
-    ).toThrow(/模組 "sales" 已存在/)
+      ModuleRegistry.use(defineModule({ key: "sales", caption: "Sales 2" }))
+    ).toThrow(/Module "sales" already exists/)
   })
 
   // ─── requires ────────────────────────────────────────────────────────────────
 
-  it("requires 依賴滿足時正常登記", () => {
-    const core = defineModule({ key: "core", caption: "核心" })
-    const sales = defineModule({ key: "sales", caption: "銷售", requires: ["core"] })
+  it("registers when requires dependencies are satisfied", () => {
+    const core = defineModule({ key: "core", caption: "Core" })
+    const sales = defineModule({ key: "sales", caption: "Sales", requires: ["core"] })
     expect(() => ModuleRegistry.use(core, sales)).not.toThrow()
     expect(ModuleRegistry.getAll()).toHaveLength(2)
   })
 
-  it("requires 依賴缺失時拋錯", () => {
-    const sales = defineModule({ key: "sales", caption: "銷售", requires: ["core"] })
-    expect(() => ModuleRegistry.use(sales)).toThrow(/模組 "sales" 依賴 "core"/)
+  it("throws when requires dependencies are missing", () => {
+    const sales = defineModule({ key: "sales", caption: "Sales", requires: ["core"] })
+    expect(() => ModuleRegistry.use(sales)).toThrow(/requires "core"/)
   })
 
-  it("requires 在同一批 use() 中依序滿足", () => {
-    const core = defineModule({ key: "core", caption: "核心" })
-    const sales = defineModule({ key: "sales", caption: "銷售", requires: ["core"] })
-    // core 先於 sales 傳入，應正常
+  it("requires can be satisfied within the same use() batch", () => {
+    const core = defineModule({ key: "core", caption: "Core" })
+    const sales = defineModule({ key: "sales", caption: "Sales", requires: ["core"] })
+    // core comes before sales
     expect(() => ModuleRegistry.use(core, sales)).not.toThrow()
   })
 
   // ─── getMenu ─────────────────────────────────────────────────────────────────
 
-  it("getMenu() 未指定 menu 時自動從 entities 生成", () => {
+  it("getMenu() auto-generates from entities when menu is not provided", () => {
     ModuleRegistry.use(defineModule({
       key: "sales",
-      caption: "銷售",
+      caption: "Sales",
       entities: [TestCustomer, TestOrder],
     }))
     const menu = ModuleRegistry.getMenu("sales")
@@ -101,10 +101,10 @@ describe("ModuleRegistry", () => {
     expect(menu[1].entity).toBe(TestOrder)
   })
 
-  it("getMenu() 指定 menu 時依 order 排序", () => {
+  it("getMenu() sorts by order when menu is provided", () => {
     ModuleRegistry.use(defineModule({
       key: "sales",
-      caption: "銷售",
+      caption: "Sales",
       entities: [TestCustomer, TestOrder],
       menu: [
         { type: "entity", entity: TestOrder, order: 1 },
@@ -116,59 +116,59 @@ describe("ModuleRegistry", () => {
     expect(menu[1].entity).toBe(TestCustomer)
   })
 
-  it("getMenu() 找不到模組時回傳空陣列", () => {
+  it("getMenu() returns empty array when module not found", () => {
     expect(ModuleRegistry.getMenu("nonexistent")).toEqual([])
   })
 
   // ─── findModuleByEntity ───────────────────────────────────────────────────────
 
-  it("findModuleByEntity() 找到所屬模組", () => {
-    ModuleRegistry.use(defineModule({ key: "sales", caption: "銷售", entities: [TestCustomer] }))
+  it("findModuleByEntity() finds owning module", () => {
+    ModuleRegistry.use(defineModule({ key: "sales", caption: "Sales", entities: [TestCustomer] }))
     const mod = ModuleRegistry.findModuleByEntity(TestCustomer)
     expect(mod?.key).toBe("sales")
   })
 
-  it("findModuleByEntity() 找不到時回傳 undefined", () => {
+  it("findModuleByEntity() returns undefined when not found", () => {
     expect(ModuleRegistry.findModuleByEntity(TestOrder)).toBeUndefined()
   })
 
   // ─── clear ───────────────────────────────────────────────────────────────────
 
-  it("clear() 後所有模組消失", () => {
-    ModuleRegistry.use(defineModule({ key: "sales", caption: "銷售" }))
+  it("clear() removes all modules", () => {
+    ModuleRegistry.use(defineModule({ key: "sales", caption: "Sales" }))
     ModuleRegistry.clear()
     expect(ModuleRegistry.getAll()).toHaveLength(0)
   })
 
   // ─── getAllRoles (P6) ────────────────────────────────────────────────────────
 
-  it("getAllRoles() 無模組時回傳系統預設角色", () => {
+  it("getAllRoles() returns system defaults when no modules", () => {
     const roles = ModuleRegistry.getAllRoles()
     expect(roles).toContain("admins")
     expect(roles).toContain("users")
   })
 
-  it("getAllRoles() 聚合模組宣告角色並去重", () => {
-    ModuleRegistry.use(defineModule({ key: "sales", caption: "銷售", roles: ["sale_managers", "sale_member"] }))
-    ModuleRegistry.use(defineModule({ key: "hr",    caption: "人資",  roles: ["hr_admin", "admins"] })) // admins 重複
+  it("getAllRoles() aggregates module roles and de-dupes", () => {
+    ModuleRegistry.use(defineModule({ key: "sales", caption: "Sales", roles: ["sale_managers", "sale_member"] }))
+    ModuleRegistry.use(defineModule({ key: "hr",    caption: "HR",  roles: ["hr_admin", "admins"] })) // duplicate admins
     const roles = ModuleRegistry.getAllRoles()
     expect(roles).toContain("admins")
     expect(roles).toContain("users")
     expect(roles).toContain("sale_managers")
     expect(roles).toContain("sale_member")
     expect(roles).toContain("hr_admin")
-    // 去重：admins 只出現一次
+    // de-dupe: admins appears once
     expect(roles.filter((r) => r === "admins")).toHaveLength(1)
   })
 
-  it("SYSTEM_ROLES 包含 admins 和 users", () => {
+  it("SYSTEM_ROLES includes admins and users", () => {
     expect(SYSTEM_ROLES).toContain("admins")
     expect(SYSTEM_ROLES).toContain("users")
   })
 
   // ─── Lifecycle (P8) ─────────────────────────────────────────────────────────
 
-  it("initAll() 依序執行 onInit", async () => {
+  it("initAll() runs onInit in order", async () => {
     const order: number[] = []
     ModuleRegistry.use(defineModule({ key: "a", caption: "A", onInit: () => { order.push(1) } }))
     ModuleRegistry.use(defineModule({ key: "b", caption: "B", onInit: async () => { order.push(2) } }))
@@ -176,7 +176,7 @@ describe("ModuleRegistry", () => {
     expect(order).toEqual([1, 2])
   })
 
-  it("serverInitAll() 依序執行 onServerInit", async () => {
+  it("serverInitAll() runs onServerInit in order", async () => {
     const order: number[] = []
     ModuleRegistry.use(defineModule({ key: "a", caption: "A", onServerInit: async () => { order.push(1) } }))
     ModuleRegistry.use(defineModule({ key: "b", caption: "B", onServerInit: () => { order.push(2) } }))
@@ -184,7 +184,7 @@ describe("ModuleRegistry", () => {
     expect(order).toEqual([1, 2])
   })
 
-  it("destroyAll() 執行 onDestroy", () => {
+  it("destroyAll() runs onDestroy", () => {
     const destroyed: string[] = []
     ModuleRegistry.use(defineModule({ key: "a", caption: "A", onDestroy: () => { destroyed.push("a") } }))
     ModuleRegistry.use(defineModule({ key: "b", caption: "B", onDestroy: () => { destroyed.push("b") } }))
@@ -192,7 +192,7 @@ describe("ModuleRegistry", () => {
     expect(destroyed).toEqual(["a", "b"])
   })
 
-  it("clear() 呼叫 destroyAll() 後清除模組", () => {
+  it("clear() calls destroyAll() then clears modules", () => {
     const destroyed: string[] = []
     ModuleRegistry.use(defineModule({ key: "a", caption: "A", onDestroy: () => { destroyed.push("a") } }))
     ModuleRegistry.clear()
@@ -200,7 +200,7 @@ describe("ModuleRegistry", () => {
     expect(ModuleRegistry.getAll()).toHaveLength(0)
   })
 
-  it("沒有 lifecycle hook 的模組不拋錯", async () => {
+  it("modules without lifecycle hooks do not throw", async () => {
     ModuleRegistry.use(defineModule({ key: "plain", caption: "Plain" }))
     await expect(ModuleRegistry.initAll()).resolves.toBeUndefined()
     await expect(ModuleRegistry.serverInitAll()).resolves.toBeUndefined()

@@ -6,6 +6,7 @@ import { Separator } from "./ui/separator"
 import { SlotArea } from "./SlotArea"
 import { cn } from "../lib/utils"
 import { useAuth } from "../context/AuthContext"
+import { useI18n } from "../i18n/useI18n"
 
 interface SidebarProps {
   title: string
@@ -45,6 +46,7 @@ function resolveMenuItem(item: IMenuItem): { caption: string; icon?: string; pat
 
 export function Sidebar({ title, onNavigate }: SidebarProps) {
   const { user } = useAuth()
+  const { t } = useI18n("iraf:core")
   const userRoles = user?.roles ?? []
   const modules = ModuleRegistry.getAll().filter((mod) => isModuleVisible(mod, userRoles))
 
@@ -64,9 +66,9 @@ export function Sidebar({ title, onNavigate }: SidebarProps) {
 
           return (
             <div key={mod.key} className="mb-6">
-              {/* 模組標題 */}
+              {/* Module heading */}
               <div className="px-6 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-widest opacity-70">
-                {mod.caption}
+                {t(mod.caption, { ns: `iraf:module:${mod.key}`, defaultValue: mod.caption })}
               </div>
 
               {modIndex > 0 && <Separator className="my-2 mx-6" />}
@@ -93,12 +95,14 @@ export function Sidebar({ title, onNavigate }: SidebarProps) {
                         onClick={onNavigate}
                       >
                         <NavIcon name={item.icon} />
-                        <span className="truncate">{item.caption}</span>
+                        <span className="truncate">
+                          {t(item.caption ?? "", { ns: `iraf:module:${mod.key}`, defaultValue: item.caption ?? "" })}
+                        </span>
                       </NavLink>
                     )
                   }
 
-                  // type: "entity"（預設）
+                  // type: "entity" (default)
                   const resolved = resolveMenuItem(item)
                   if (!resolved) return null
 
@@ -117,7 +121,9 @@ export function Sidebar({ title, onNavigate }: SidebarProps) {
                       onClick={onNavigate}
                     >
                       <NavIcon name={resolved.icon} />
-                      <span className="truncate">{resolved.caption}</span>
+                      <span className="truncate">
+                        {t(resolved.caption ?? "", { ns: `iraf:module:${mod.key}`, defaultValue: resolved.caption ?? "" })}
+                      </span>
                     </NavLink>
                   )
                 })}

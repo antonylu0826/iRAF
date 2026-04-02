@@ -3,9 +3,11 @@ import { useAuth } from "../context/AuthContext"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Loader2 } from "lucide-react"
+import { useI18n } from "../i18n/useI18n"
 
 export function LoginPage() {
   const { login } = useAuth()
+  const { t } = useI18n("iraf:core")
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -18,7 +20,7 @@ export function LoginPage() {
     try {
       await login(username, password)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "登入失敗")
+      setError(err instanceof Error ? err.message : t("loginFailed"))
     } finally {
       setLoading(false)
     }
@@ -33,8 +35,8 @@ export function LoginPage() {
               <span className="text-primary-foreground text-lg font-bold">i</span>
             </div>
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight">登入</h1>
-          <p className="text-sm text-muted-foreground">請輸入您的帳號與密碼</p>
+          <h1 className="text-2xl font-semibold tracking-tight">{t("loginTitle")}</h1>
+          <p className="text-sm text-muted-foreground">{t("loginSubtitle")}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -44,7 +46,7 @@ export function LoginPage() {
             </div>
           )}
           <div className="space-y-1.5">
-            <label className="text-sm font-medium">帳號</label>
+            <label className="text-sm font-medium">{t("username")}</label>
             <Input
               type="text"
               value={username}
@@ -54,7 +56,7 @@ export function LoginPage() {
             />
           </div>
           <div className="space-y-1.5">
-            <label className="text-sm font-medium">密碼</label>
+            <label className="text-sm font-medium">{t("password")}</label>
             <Input
               type="password"
               value={password}
@@ -65,7 +67,7 @@ export function LoginPage() {
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            登入
+            {t("login")}
           </Button>
         </form>
 

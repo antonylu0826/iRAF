@@ -1,5 +1,5 @@
 // app/src/server/auth.ts
-// Auth 路由 + getUser middleware — 從 ServiceRegistry 取得 IAuthProvider
+// Auth routes + getUser middleware — uses IAuthProvider from ServiceRegistry
 import { Router } from "express"
 import { remult } from "remult"
 import { ServiceRegistry, SERVICE_KEYS } from "@iraf/core"
@@ -8,8 +8,8 @@ import type { IAuthProvider } from "@iraf/core"
 export const JWT_SECRET = process.env.IRAF_JWT_SECRET ?? "iraf-dev-secret-change-in-production"
 
 /**
- * Remult getUser — 從 Authorization header 解析使用者。
- * 委派給 ServiceRegistry 中的 IAuthProvider。
+ * Remult getUser — parses user from Authorization header.
+ * Delegates to IAuthProvider in ServiceRegistry.
  */
 export async function getUser(req: { headers: Record<string, string | string[] | undefined> }) {
   const provider = ServiceRegistry.resolve<IAuthProvider>(SERVICE_KEYS.AUTH)
@@ -18,7 +18,7 @@ export async function getUser(req: { headers: Record<string, string | string[] |
 }
 
 /**
- * Auth 路由（login / me）
+ * Auth routes (login / me).
  */
 export function createAuthRouter(withRemult: import("express").RequestHandler): Router {
   const router = Router()
@@ -30,15 +30,15 @@ export function createAuthRouter(withRemult: import("express").RequestHandler): 
       const result = await provider.login(req.body)
       res.json(result)
     } catch (e: any) {
-      const status = e.message?.includes("停用") ? 403 : 401
-      res.status(status).json({ message: e.message ?? "登入失敗" })
+      const status = e.message?.toLowerCase?.().includes("disabled") ? 403 : 401
+      res.status(status).json({ message: e.message ?? "Login failed" })
     }
   })
 
   /** GET /api/auth/me */
   router.get("/api/auth/me", withRemult, (_req, res) => {
     if (!remult.user) {
-      res.status(401).json({ message: "未登入" })
+      res.status(401).json({ message: "Not authenticated" })
       return
     }
     res.json({ user: remult.user })

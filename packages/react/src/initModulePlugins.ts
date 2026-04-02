@@ -1,11 +1,11 @@
 /**
- * initModulePlugins — 將所有已登記模組的自帶插件注入 PluginRegistry。
+ * initModulePlugins — injects all module-provided plugins into PluginRegistry.
  *
- * 在 iRAFApp 的路由渲染前呼叫（ModuleRegistry.use() 之後）。
- * 若插件 name 已存在則跳過（避免重複登記）。
+ * Call before iRAFApp route rendering (after ModuleRegistry.use()).
+ * Skip when plugin name already exists to avoid duplicate registration.
  *
- * packages/core 的 IModulePlugin.component 是 unknown，
- * 此處強制轉型為 React.ComponentType<any> 再登記。
+ * packages/core IModulePlugin.component is typed as unknown,
+ * so we cast it to React.ComponentType<any> before registering.
  */
 import { ModuleRegistry } from "@iraf/core"
 import { PluginRegistry } from "./registry/PluginRegistry"
@@ -14,7 +14,7 @@ import type React from "react"
 export function initModulePlugins(): void {
   for (const mod of ModuleRegistry.getAll()) {
     for (const entry of mod.plugins ?? []) {
-      // 若已存在則跳過，不拋錯（模組可能被重複 render）
+      // Skip if already exists (modules might render multiple times).
       if (PluginRegistry.resolve(entry.category, entry.plugin.name)) continue
       PluginRegistry.register(entry.category, {
         name: entry.plugin.name,

@@ -5,14 +5,14 @@ import { DetailFirst } from "./DetailFirst"
 import { DetailSecond } from "./DetailSecond"
 
 /**
- * MasterItem — Master-Detail 示範的主項目。
+ * MasterItem — master entity for the Master-Detail demo.
  *
- * 包含 details 子集合，由 @iField.collection 宣告，
- * DetailView 會自動渲染為 SubGrid control。
- * 使用者可以在主記錄尚未儲存時就輸入明細，儲存後自動批量寫入。
+ * Contains detail collections via @iField.collection.
+ * DetailView renders them as SubGrid controls automatically.
+ * Users can edit details before the master is saved; they are batch-inserted after save.
  */
 @iEntity("master-items", {
-  caption: "主項目",
+  caption: "Master Items",
   icon: "ListOrdered",
   allowedRoles: {
     read:   ["admins", "managers", "users"],
@@ -22,14 +22,14 @@ import { DetailSecond } from "./DetailSecond"
   },
 })
 export class MasterItem extends BaseObject {
-  @iField.string({ caption: "名稱", required: true, order: 1 })
+  @iField.string({ caption: "Name", required: true, order: 1 })
   name = ""
 
-  @iField.string({ caption: "說明", control: "textarea", order: 2 })
+  @iField.string({ caption: "Description", control: "textarea", order: 2 })
   description = ""
 
   @iField.collection({
-    caption: "明細項目",
+    caption: "Detail Items",
     entity: () => DetailItem,
     foreignKey: "masterId",
     order: 10,
@@ -37,7 +37,7 @@ export class MasterItem extends BaseObject {
   details: DetailItem[] = []
 
   @iField.collection({
-    caption: "明細一",
+    caption: "Detail First",
     entity: () => DetailFirst,
     foreignKey: "masterId",
     order: 11,
@@ -45,7 +45,7 @@ export class MasterItem extends BaseObject {
   detailFirsts: DetailFirst[] = []
 
   @iField.collection({
-    caption: "明細二",
+    caption: "Detail Second",
     entity: () => DetailSecond,
     foreignKey: "masterId",
     order: 12,

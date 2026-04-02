@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       body: JSON.stringify({ username, password }),
     })
     const data = await res.json() as { token?: string; user?: AuthUser; message?: string }
-    if (!res.ok) throw new Error(data.message ?? "登入失敗")
+    if (!res.ok) throw new Error(data.message ?? "Login failed")
     applyToken(data.token!)
     setUser(data.user!)
     await EventBus.emit(EVENTS.AUTH_LOGIN, { user: data.user! })

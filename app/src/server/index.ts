@@ -8,9 +8,9 @@ import { EntityRegistry, ModuleRegistry, ServiceRegistry, SERVICE_KEYS, type IPa
 import { AppUser } from "@iraf/module-system"
 import { JWT_SECRET, getUser, createAuthRouter } from "./auth"
 import { JwtAuthProvider } from "./JwtAuthProvider"
-import "../modules" // 觸發 ModuleRegistry.use(...)
+import "../modules" // Trigger ModuleRegistry.use(...)
 
-// ─── 登記服務 ──────────────────────────────────────────────────────────────────
+// ─── Register services ────────────────────────────────────────────────────────
 ServiceRegistry.register(SERVICE_KEYS.AUTH, new JwtAuthProvider({ secret: JWT_SECRET }))
 ServiceRegistry.register<IPasswordHasher>(SERVICE_KEYS.PASSWORD_HASHER, {
   hash: (password: string) => bcrypt.hash(password, 10),
@@ -20,7 +20,7 @@ ServiceRegistry.register<IPasswordHasher>(SERVICE_KEYS.PASSWORD_HASHER, {
 const app = express()
 app.use(express.json())
 
-// remultExpress 必須先執行，才能建立 remult context（auth 路由需要 remult.repo()）
+// remultExpress must run first to establish remult context (auth needs remult.repo()).
 const api = remultExpress({
   entities: EntityRegistry.getAll() as any[],
   controllers: EntityRegistry.getAllControllers() as any[],
@@ -33,13 +33,13 @@ const api = remultExpress({
       const password = process.env.IRAF_ADMIN_PASSWORD ?? "admin123"
       const passwordHash = await bcrypt.hash(password, 10)
       await repo.insert({ username, passwordHash, displayName: username, roles: ["admins"] })
-      console.log(`[iRAF] 已建立預設管理員帳號：${username}`)
+      console.log(`[iRAF] Created default admin user: ${username}`)
     }
   },
 })
 app.use(api)
 
-// Auth 路由（login / me）— 使用 api.withRemult 建立 remult context
+// Auth routes (login / me) — use api.withRemult for remult context
 app.use(createAuthRouter(api.withRemult))
 
 app.get("/", (_req, res) => {
@@ -49,7 +49,7 @@ app.get("/", (_req, res) => {
 const PORT = 3001
 
 async function startServer() {
-  // 執行所有模組的 server 側初始化
+  // Run server-side init for all modules.
   await ModuleRegistry.serverInitAll()
 
   app.listen(PORT, () => {

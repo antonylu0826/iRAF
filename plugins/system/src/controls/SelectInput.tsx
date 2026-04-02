@@ -6,21 +6,23 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  useI18n,
 } from "@iraf/react"
 
 /**
- * SelectInput — 供 `options` 欄位使用的下拉選單 control。
- * 支援 string[] 與 { id, caption }[] 兩種格式。
- * 已替換為 Shadcn UI / Radix (完全一致的 Tailwind 風格與動畫支援)
+ * SelectInput — dropdown control for `options` fields.
+ * Supports string[] and { id, caption }[] formats.
+ * Implemented with Shadcn UI / Radix for consistent Tailwind styling & animations.
  */
 export function SelectInput({ value, onChange, disabled, field }: IControlProps) {
+  const { t } = useI18n("iraf:core")
   const options = field.options ?? []
 
-  // Shadcn 的 Select onValueChange 都是透過 string 傳遞。
-  // 我們將空字串 ("") 視為未選擇 (null)。
+  // Shadcn Select onValueChange always passes strings.
+  // Treat empty string ("") as unselected (null).
   const handleValueChange = (v: string) => {
-    // 雖然 Radix UI Select 不允許選「空」項目，
-    // 但是我們提供了一個清空用的 "none" option，以便對應 optional field。
+    // Radix Select doesn't allow an empty item,
+    // so we provide a "none" option for optional fields.
     if (v === "__none__") {
       onChange(null)
     } else {
@@ -35,12 +37,12 @@ export function SelectInput({ value, onChange, disabled, field }: IControlProps)
       disabled={disabled}
     >
       <SelectTrigger className="w-full">
-        <SelectValue placeholder="— 請選擇 —" />
+        <SelectValue placeholder={t("selectPlaceholder")} />
       </SelectTrigger>
       <SelectContent>
-        {/* 如果不阻擋空值，提供一個可選的空選項 */}
+        {/* Optional "none" option for clearing the value */}
         <SelectItem value="__none__">
-          <span className="text-muted-foreground">— 請選擇 —</span>
+          <span className="text-muted-foreground">{t("selectPlaceholder")}</span>
         </SelectItem>
         {options.map((opt) => {
           if (typeof opt === "string") {

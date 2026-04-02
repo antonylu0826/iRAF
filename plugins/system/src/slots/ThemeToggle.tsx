@@ -1,6 +1,6 @@
 import React from "react"
 import { Moon, Sun } from "lucide-react"
-import { Button, type ISlotProps } from "@iraf/react"
+import { Button, type ISlotProps, useI18n } from "@iraf/react"
 
 const STORAGE_KEY = "iraf-theme"
 
@@ -19,6 +19,7 @@ function applyTheme(theme: "light" | "dark") {
 
 export function ThemeToggle(_props: ISlotProps) {
   const [theme, setTheme] = React.useState<"light" | "dark">("light")
+  const { t } = useI18n("iraf:core")
 
   React.useEffect(() => {
     const t = getStoredTheme()
@@ -41,8 +42,8 @@ export function ThemeToggle(_props: ISlotProps) {
       size="icon"
       onClick={toggle}
       className="h-8 w-8"
-      aria-label={theme === "dark" ? "切換為亮色" : "切換為暗色"}
-      title={theme === "dark" ? "切換為亮色" : "切換為暗色"}
+      aria-label={theme === "dark" ? t("switchToLight") : t("switchToDark")}
+      title={theme === "dark" ? t("switchToLight") : t("switchToDark")}
     >
       {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
     </Button>

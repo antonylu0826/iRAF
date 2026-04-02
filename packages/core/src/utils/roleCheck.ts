@@ -2,7 +2,7 @@
 import type { RoleCheck, IUserContext } from "../types/metadata"
 
 /**
- * evalRoleCheck — 統一評估 RoleCheck（string[] 或 row-level predicate）。
+ * evalRoleCheck — evaluates RoleCheck (string[] or row-level predicate).
  *
  * ```ts
  * evalRoleCheck(meta?.allowedRoles?.update, user, row)
@@ -19,7 +19,7 @@ export function evalRoleCheck(
 }
 
 /**
- * hasRole — 檢查使用者是否具備指定角色之一。
+ * hasRole — checks if user has any of the required roles.
  *
  * ```ts
  * hasRole(user?.roles ?? [], am.allowedRoles)

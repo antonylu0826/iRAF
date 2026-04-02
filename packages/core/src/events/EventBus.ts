@@ -3,24 +3,24 @@
 export type EventHandler<T = any> = (payload: T) => void | Promise<void>
 
 /**
- * EventBus — iRAF 跨模組事件匯流排。
+ * EventBus — iRAF cross-module event bus.
  *
- * 提供模組間鬆耦合通訊，不需要直接 import 彼此。
+ * Provides loose coupling between modules without direct imports.
  *
  * ```ts
- * // 訂閱
+ * // Subscribe
  * const unsubscribe = EventBus.on("order:created", ({ orderId }) => {
- *   console.log("新訂單", orderId)
+ *   console.log("New order", orderId)
  * })
  *
- * // 發射
+ * // Emit
  * await EventBus.emit("order:created", { orderId: "123" })
  *
- * // 取消訂閱
+ * // Unsubscribe
  * unsubscribe()
  * ```
  *
- * 內建事件：
+ * Built-in events:
  * - entity:saving  { entityClass, item, isNew }
  * - entity:saved   { entityClass, item, isNew }
  * - entity:deleting { entityClass, id }
@@ -32,7 +32,7 @@ export class EventBus {
   private static _handlers = new Map<string, Set<EventHandler>>()
 
   /**
-   * 訂閱事件。回傳取消訂閱函式。
+   * Subscribe to an event. Returns an unsubscribe function.
    */
   static on<T = any>(event: string, handler: EventHandler<T>): () => void {
     if (!this._handlers.has(event)) {
@@ -43,7 +43,7 @@ export class EventBus {
   }
 
   /**
-   * 一次性訂閱：觸發一次後自動取消。
+   * Subscribe once: auto-unsubscribes after first trigger.
    */
   static once<T = any>(event: string, handler: EventHandler<T>): () => void {
     const wrapper: EventHandler<T> = async (payload) => {
@@ -54,7 +54,7 @@ export class EventBus {
   }
 
   /**
-   * 發射事件。所有 handler 平行執行，等待全部完成。
+   * Emit an event. All handlers run in parallel and are awaited.
    */
   static async emit<T = any>(event: string, payload: T): Promise<void> {
     const handlers = this._handlers.get(event)
@@ -63,21 +63,21 @@ export class EventBus {
   }
 
   /**
-   * 取消訂閱指定 handler。
+   * Unsubscribe a specific handler.
    */
   static off(event: string, handler: EventHandler): void {
     this._handlers.get(event)?.delete(handler)
   }
 
   /**
-   * 清除所有訂閱（主要用於測試）。
+   * Clear all subscriptions (mainly for tests).
    */
   static clear(): void {
     this._handlers.clear()
   }
 }
 
-// ─── 內建事件型別（供 TypeScript 使用者參考） ──────────────────────────────────
+// ─── Built-in event types (for TypeScript reference) ─────────────────────────
 
 export interface EntitySavingPayload {
   entityClass: Function
@@ -105,7 +105,7 @@ export interface AuthLoginPayload {
   user: { id: string; name: string; roles: string[] }
 }
 
-/** 內建事件 key 常數 */
+/** Built-in event key constants */
 export const EVENTS = {
   ENTITY_SAVING: "entity:saving",
   ENTITY_SAVED: "entity:saved",

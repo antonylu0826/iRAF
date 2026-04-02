@@ -6,11 +6,11 @@ import { iField } from "../decorators/iField"
 describe("iField.string", () => {
   it("stores group in iRAF field metadata", () => {
     class TestEntity {
-      @iField.string({ caption: "姓名", group: "基本資訊" })
+      @iField.string({ caption: "Name", group: "General Info" })
       name = ""
     }
     const meta: Record<string, IFieldMeta> = Reflect.getMetadata(IRAF_FIELD_KEY, TestEntity) ?? {}
-    expect(meta["name"]).toMatchObject({ caption: "姓名", group: "基本資訊" })
+    expect(meta["name"]).toMatchObject({ caption: "Name", group: "General Info" })
     expect(meta["name"]._type).toBe("string")
   })
 
@@ -25,11 +25,11 @@ describe("iField.string", () => {
 
   it("stores caption in iRAF field metadata", () => {
     class TestEntity {
-      @iField.string({ caption: "描述" })
+      @iField.string({ caption: "Description" })
       description = ""
     }
     const meta: Record<string, IFieldMeta> = Reflect.getMetadata(IRAF_FIELD_KEY, TestEntity) ?? {}
-    expect(meta["description"]).toMatchObject({ caption: "描述" })
+    expect(meta["description"]).toMatchObject({ caption: "Description" })
   })
 
   it("accumulates metadata for multiple fields", () => {
@@ -49,11 +49,11 @@ describe("iField.string", () => {
 describe("iField.number", () => {
   it("stores order in iRAF field metadata", () => {
     class TestEntity {
-      @iField.number({ caption: "金額", order: 2 })
+      @iField.number({ caption: "Amount", order: 2 })
       amount = 0
     }
     const meta: Record<string, IFieldMeta> = Reflect.getMetadata(IRAF_FIELD_KEY, TestEntity) ?? {}
-    expect(meta["amount"]).toMatchObject({ caption: "金額", order: 2 })
+    expect(meta["amount"]).toMatchObject({ caption: "Amount", order: 2 })
     expect(meta["amount"]._type).toBe("number")
   })
 })

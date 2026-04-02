@@ -8,26 +8,35 @@ import { LoginPage } from "./LoginPage"
 import { Loader2 } from "lucide-react"
 import { PluginRegistry } from "../registry/PluginRegistry"
 import { initModulePlugins } from "../initModulePlugins"
+import { initI18n, i18nInstance } from "../i18n/i18n"
+import { initModuleI18n } from "../initModuleI18n"
+import { I18nextProvider } from "react-i18next"
+import { useI18n } from "../i18n/useI18n"
 
 interface iRAFAppProps {
   title?: string
 }
 
 export function iRAFApp({ title = "iRAF App" }: iRAFAppProps) {
+  initI18n()
+  initModuleI18n()
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <AppRoutes title={title} />
-      </AuthProvider>
+      <I18nextProvider i18n={i18nInstance}>
+        <AuthProvider>
+          <AppRoutes title={title} />
+        </AuthProvider>
+      </I18nextProvider>
     </BrowserRouter>
   )
 }
 
 function AppRoutes({ title }: { title: string }) {
   const { user, loading } = useAuth()
+  const { t } = useI18n("iraf:core")
   const modules = ModuleRegistry.getAll()
 
-  // 登記模組自帶插件（模組已 use() 後，idempotent）
+  // Register module plugins (idempotent after module use()).
   initModulePlugins()
   const firstModule = modules[0]
   const firstEntityMeta = firstModule?.entities?.[0]
@@ -41,7 +50,7 @@ function AppRoutes({ title }: { title: string }) {
     return (
       <div className="min-h-screen flex items-center justify-center text-muted-foreground gap-2">
         <Loader2 className="h-5 w-5 animate-spin" />
-        載入中…
+        {t("loading")}
       </div>
     )
   }
@@ -59,7 +68,7 @@ function AppRoutes({ title }: { title: string }) {
 
         {modules.map((mod) => (
           <Route key={mod.key} path={mod.key}>
-            {/* 模組根路由：redirect 到第一個 entity（dashboard 預留） */}
+            {/* Module root route: redirect to the first entity (dashboard reserved). */}
             {mod.entities?.[0] && (() => {
               const firstMeta = EntityRegistry.getMeta(mod.entities![0])
               return firstMeta

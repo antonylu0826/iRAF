@@ -2,39 +2,39 @@ import React from "react"
 import { PluginRegistry } from "../registry/PluginRegistry"
 
 /**
- * ISlotProps — 所有 slot component 都會收到的 props。
- * context 由 Shell 傳入，供 slot 取得所在頁面的上下文資訊。
+ * ISlotProps — props passed to all slot components.
+ * context is provided by the Shell to offer page-level context.
  */
 export interface ISlotProps {
   context?: Record<string, any>
 }
 
 /**
- * SlotArea — 渲染指定前綴的所有 slot 插件。
+ * SlotArea — renders all slot plugins for a given prefix.
  *
- * Slot 以 PluginRegistry 的 "slot" category 管理，
- * 名稱格式為 `{區域}:{名稱}`，例如 `appbar:notifications`。
+ * Slots are stored under the PluginRegistry "slot" category,
+ * named as `{area}:{name}`, e.g. `appbar:notifications`.
  *
  * ```tsx
- * // Shell 元件內使用
+ * // Use inside Shell
  * <SlotArea prefix="appbar" />
  * <SlotArea prefix="detail-toolbar" context={{ entityClass, item }} />
  *
- * // 插件註冊
+ * // Register a slot
  * PluginRegistry.register("slot", {
  *   name: "appbar:notifications",
- *   caption: "通知鈴",
+ *   caption: "Notification Bell",
  *   component: NotificationBell,
  * })
  * ```
  *
- * Slot 前綴規範：
- * - `appbar`          AppHeader 右側（logout 左側）
- * - `sidebar-header`  Sidebar logo 區下方
- * - `sidebar-footer`  Sidebar 底部
- * - `list-toolbar`    ListView 標題列右側（新增按鈕左側）
- * - `detail-header`   DetailView 標題區右側（返回按鈕左側）
- * - `detail-toolbar`  DetailView Action Bar 之後
+ * Slot prefix guidelines:
+ * - `appbar`          Right side of AppHeader (left of logout)
+ * - `sidebar-header`  Below the Sidebar logo
+ * - `sidebar-footer`  Bottom of Sidebar
+ * - `list-toolbar`    Right side of ListView header (left of add button)
+ * - `detail-header`   Right side of DetailView header (left of back button)
+ * - `detail-toolbar`  After the DetailView action bar
  */
 export function SlotArea({
   prefix,

@@ -1,5 +1,5 @@
 // app/src/modules/index.ts
-// 登記所有模組 — 匯入此檔案即觸發 ModuleRegistry.use()
+// Register all modules — importing this file triggers ModuleRegistry.use()
 import { ModuleRegistry } from "@iraf/core"
 import { SystemModule } from "@iraf/module-system"
 import { SampleModule } from "@iraf/module-sample"

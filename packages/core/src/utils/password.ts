@@ -9,11 +9,11 @@ export interface PasswordRulesOptions {
 }
 
 /**
- * 回傳符合 IFieldMeta.validate 簽名的密碼強度驗證函式。
+ * Returns a password strength validator compatible with IFieldMeta.validate.
  *
  * ```ts
  * @iField.string({
- *   caption: "新密碼",
+ *   caption: "New Password",
  *   control: "password",
  *   validate: passwordRules({ minLength: 8, requireUppercase: true, requireSpecial: true }),
  * })
@@ -31,11 +31,11 @@ export function passwordRules(options: PasswordRulesOptions = {}) {
 
   return (value: any): string | undefined => {
     if (typeof value !== "string" || value === "") return undefined
-    if (value.length < minLength) return `密碼長度至少需要 ${minLength} 個字元`
-    if (requireUppercase && !/[A-Z]/.test(value)) return "密碼必須包含至少一個大寫字母"
-    if (requireLowercase && /[a-z]/.test(value) === false) return "密碼必須包含至少一個小寫字母"
-    if (requireNumber && !/[0-9]/.test(value)) return "密碼必須包含至少一個數字"
-    if (requireSpecial && !/[^A-Za-z0-9]/.test(value)) return "密碼必須包含至少一個特殊符號"
+    if (value.length < minLength) return `Password must be at least ${minLength} characters.`
+    if (requireUppercase && !/[A-Z]/.test(value)) return "Password must include at least one uppercase letter."
+    if (requireLowercase && /[a-z]/.test(value) === false) return "Password must include at least one lowercase letter."
+    if (requireNumber && !/[0-9]/.test(value)) return "Password must include at least one number."
+    if (requireSpecial && !/[^A-Za-z0-9]/.test(value)) return "Password must include at least one special character."
     return undefined
   }
 }

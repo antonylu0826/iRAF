@@ -920,28 +920,28 @@ Step 4: Module Lifecycle
 
 ---
 
-### Phase 10 — i18n 多國語言機制 [ ]
+### Phase 10 — i18n 多國語言機制 [x]
 
 讓核心、插件、模組都能各自提供翻譯，並採用「自然語言即 Key」的 fallback 策略。
 
 #### 10.1 核心 i18n 基建
-- [ ] 引入 `i18next` / `react-i18next`（packages/react）
-- [ ] 建立 `I18nRegistry`（addBundle / changeLang / getLang）
-- [ ] 內建 core 基礎字典（`zh-TW`, `en-US`）
-- [ ] namespace：`iraf:core`
+- [x] 引入 `i18next` / `react-i18next`（packages/react）
+- [x] 建立 `I18nRegistry`（addBundle / changeLang / getLang）
+- [x] 內建 core 基礎字典（`zh-TW`, `en-US`）
+- [x] namespace：`iraf:core`
 
 #### 10.2 Plugin 翻譯支援
-- [ ] 擴充 `PluginRegistry.register()`，允許傳入 `translations`
-- [ ] plugin 註冊時自動加入 `iraf:plugin:<name>` namespace
-- [ ] 核心 plugins（Lookup/Select/Detail/List/Controls）加上翻譯字串
+- [x] 擴充 `PluginRegistry.register()`，允許傳入 `translations`
+- [x] plugin 註冊時自動加入 `iraf:plugin:<name>` namespace
+- [x] 核心 plugins（Lookup/Select/Detail/List/Controls）加上翻譯字串
 
 #### 10.3 Module 翻譯支援
-- [ ] 擴充 `IModuleOptions` 增加 `i18n` 屬性
-- [ ] `ModuleRegistry.use()` 自動註冊模組字典（`iraf:module:<key>`）
-- [ ] Entity / Field / Action / Group 標籤統一 `t(..., { defaultValue })`
+- [x] 擴充 `IModuleOptions` 增加 `i18n` 屬性
+- [x] `ModuleRegistry.use()` 自動註冊模組字典（`iraf:module:<key>`）
+- [x] Entity / Field / Action / Group 標籤統一 `t(..., { defaultValue })`
 
 #### 10.4 前後端訊息一致化
-- [ ] 前端統一以 `t` 包裝系統 UI 文案
+- [x] 前端統一以 `t` 包裝系統 UI 文案
 - [ ] 後端錯誤訊息採用 code / key，由前端翻譯（或 Accept-Language 傳遞）
 
 ---

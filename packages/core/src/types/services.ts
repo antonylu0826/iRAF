@@ -1,9 +1,9 @@
 // packages/core/src/types/services.ts
-// iRAF 內建服務合約（介面定義）
+// iRAF built-in service contracts (interface definitions)
 
 // ─── Auth ──────────────────────────────────────────────────────────────────────
 
-/** 認證後的使用者資訊 */
+/** Authenticated user info */
 export interface IAuthUser {
   id: string
   name: string
@@ -11,33 +11,33 @@ export interface IAuthUser {
 }
 
 /**
- * 認證策略介面。
+ * Auth strategy interface.
  *
- * 實作此介面後透過 ServiceRegistry 登記：
+ * Register via ServiceRegistry after implementing:
  * ```ts
  * ServiceRegistry.register("auth", new JwtAuthProvider({ secret: "..." }))
  * ```
  *
- * 框架的 AuthContext 會從 ServiceRegistry 取得此 provider，
- * 因此切換認證方式（JWT → OAuth → LDAP）只需換一行 register 呼叫。
+ * AuthContext resolves this provider from ServiceRegistry,
+ * so switching auth (JWT -> OAuth -> LDAP) is a one-line register change.
  */
 export interface IAuthProvider {
   /**
-   * 處理登入，回傳 token 與使用者資訊。
-   * credentials 由登入頁傳入（預設 { username, password }）。
+   * Handle login, returning token and user info.
+   * credentials are provided by login page (default { username, password }).
    */
   login(credentials: Record<string, any>): Promise<{ token: string; user: IAuthUser }>
 
   /**
-   * 從 HTTP request 解析使用者（server 側 middleware）。
-   * 無法解析時回傳 undefined。
+   * Parse user from HTTP request (server middleware).
+   * Return undefined when not authenticated.
    */
   getUser(req: any): Promise<IAuthUser | undefined>
 
   /**
-   * 自訂登入頁 React 元件（選填）。
-   * core 不依賴 React，以 unknown 宣告；packages/react 層轉型使用。
-   * 未提供時使用框架預設 LoginPage。
+   * Custom login page React component (optional).
+   * core doesn't depend on React, so it's typed as unknown; packages/react will cast.
+   * If not provided, the default LoginPage is used.
    */
   loginComponent?: unknown
 }
@@ -45,14 +45,14 @@ export interface IAuthProvider {
 // ─── Notifier ─────────────────────────────────────────────────────────────────
 
 /**
- * UI 通知介面（toast / snackbar）。
+ * UI notifier interface (toast / snackbar).
  *
  * ```ts
  * ServiceRegistry.register("notifier", new SonnerNotifier())
  *
- * // 使用
+ * // Usage
  * const notifier = ServiceRegistry.resolve<INotifier>("notifier")
- * notifier?.success("儲存成功")
+ * notifier?.success("Saved")
  * ```
  */
 export interface INotifier {
@@ -62,20 +62,21 @@ export interface INotifier {
   warn(message: string): void
 }
 
-// ??? Password Hasher ???????????????????????????????????????????
+// ─── Password Hasher ─────────────────────────────────────────────────────────
 
 /**
- * 撖Ⅳ hash / compare 隞嚗? *
- * 由 server 端註冊實作（bcrypt / argon2 等），避免 client bundle 誤帶入 node-only 依賴。
+ * Password hash / compare interface.
+ * Implementations are registered on the server (bcrypt / argon2, etc.)
+ * to avoid bundling node-only deps into the client.
  */
 export interface IPasswordHasher {
   hash(password: string): Promise<string>
   compare(password: string, hash: string): Promise<boolean>
 }
 
-// ─── Service key 常數 ─────────────────────────────────────────────────────────
+// ─── Service key constants ───────────────────────────────────────────────────
 
-/** 內建服務 key 常數，避免魔法字串 */
+/** Built-in service keys to avoid magic strings */
 export const SERVICE_KEYS = {
   AUTH: "auth",
   NOTIFIER: "notifier",

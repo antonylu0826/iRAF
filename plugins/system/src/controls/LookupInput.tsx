@@ -9,6 +9,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  useI18n,
 } from "@iraf/react"
 import { Search, X, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 import { resolveRefLabelField } from "../utils/refLabel"
@@ -24,12 +25,13 @@ const PAGE_SIZE = 20
 type Mode = "loading" | "select" | "lookup"
 
 /**
- * LookupInput — 供 `ref` 欄位使用的關聯選取 control。
+ * LookupInput — relation picker for `ref` fields.
  *
- * - mount 時 fetch threshold+1 筆：≤ threshold → <select>；> threshold → Modal lookup
- * - Modal 支援即時搜尋 + 分頁
+ * - On mount, fetch threshold+1 rows: <= threshold -> <select>, > threshold -> modal lookup
+ * - Modal supports live search + pagination
  */
 export function LookupInput({ value, onChange, disabled, field }: IControlProps) {
+  const { t } = useI18n("iraf:core")
   const threshold = field.refThreshold ?? 25
   const entityClass = useMemo(() => EntityRegistry.getByKey(field.ref!), [field.ref])
   const labelField = useMemo(
@@ -134,13 +136,13 @@ export function LookupInput({ value, onChange, disabled, field }: IControlProps)
     return (
       <div className="h-9 flex items-center gap-2 text-muted-foreground text-sm px-2.5">
         <Loader2 className="h-4 w-4 animate-spin" />
-        載入中…
+        {t("loading")}
       </div>
     )
   }
 
   if (mode === "select") {
-    // 當筆數不超過 threshold 時退化為下拉選單，並採用統一樣式的 UI
+    // If record count <= threshold, degrade to a select with shared styling
     return (
       <Select
         value={value ? String(value) : "__none__"}
@@ -148,11 +150,11 @@ export function LookupInput({ value, onChange, disabled, field }: IControlProps)
         disabled={disabled}
       >
         <SelectTrigger className="w-full h-9">
-          <SelectValue placeholder="— 請選擇 —" />
+          <SelectValue placeholder={t("selectPlaceholder")} />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="__none__">
-            <span className="text-muted-foreground">— 請選擇 —</span>
+            <span className="text-muted-foreground">{t("selectPlaceholder")}</span>
           </SelectItem>
           {selectOptions.map((opt) => (
             <SelectItem key={opt.id} value={String(opt.id)}>
@@ -173,7 +175,7 @@ export function LookupInput({ value, onChange, disabled, field }: IControlProps)
           className={cn(inputClass, "flex-1 cursor-default")}
           value={selectedLabel}
           readOnly
-          placeholder="— 未選取 —"
+          placeholder={t("unselected")}
           onClick={!disabled ? openModal : undefined}
         />
         {!disabled && (
@@ -181,7 +183,7 @@ export function LookupInput({ value, onChange, disabled, field }: IControlProps)
             <button
               type="button"
               onClick={openModal}
-              title="搜尋"
+              title={t("search")}
               className="h-9 w-9 flex items-center justify-center rounded-lg border border-input bg-background hover:bg-muted text-muted-foreground transition-colors"
             >
               <Search className="h-4 w-4" />
@@ -207,7 +209,7 @@ export function LookupInput({ value, onChange, disabled, field }: IControlProps)
           <div className="bg-background rounded-xl shadow-2xl w-[480px] max-h-[70vh] flex flex-col border">
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b">
-              <span className="text-sm font-semibold">選擇{field.caption ?? ""}</span>
+              <span className="text-sm font-semibold">{t("choose")}{field.caption ?? ""}</span>
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
@@ -224,7 +226,7 @@ export function LookupInput({ value, onChange, disabled, field }: IControlProps)
                 <input
                   type="text"
                   className="h-8 w-full rounded-md border border-input bg-background pl-8 pr-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
-                  placeholder="搜尋…"
+                  placeholder={t("search") + "…"}
                   value={search}
                   onChange={(e) => handleSearch(e.target.value)}
                   autoFocus
@@ -237,10 +239,10 @@ export function LookupInput({ value, onChange, disabled, field }: IControlProps)
               {modalLoading ? (
                 <div className="flex items-center justify-center py-8 gap-2 text-muted-foreground text-sm">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  載入中…
+                  {t("loading")}
                 </div>
               ) : modalRows.length === 0 ? (
-                <div className="py-8 text-center text-sm text-muted-foreground">查無資料</div>
+                <div className="py-8 text-center text-sm text-muted-foreground">{t("noResults")}</div>
               ) : (
                 modalRows.map((row) => (
                   <button
@@ -267,16 +269,16 @@ export function LookupInput({ value, onChange, disabled, field }: IControlProps)
                   onClick={() => handlePageChange(page - 1)}
                   className="flex items-center gap-1 disabled:opacity-40 hover:text-foreground transition-colors"
                 >
-                  <ChevronLeft className="h-4 w-4" /> 上一頁
+                  <ChevronLeft className="h-4 w-4" /> {t("prevPage")}
                 </button>
-                <span>第 {page} 頁</span>
+                <span>{t("pagePrefix")}{page}{t("pageSuffix")}</span>
                 <button
                   type="button"
                   disabled={!hasMore}
                   onClick={() => handlePageChange(page + 1)}
                   className="flex items-center gap-1 disabled:opacity-40 hover:text-foreground transition-colors"
                 >
-                  下一頁 <ChevronRight className="h-4 w-4" />
+                  {t("nextPage")} <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
             )}

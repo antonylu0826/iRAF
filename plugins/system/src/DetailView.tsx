@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router"
 import { remult } from "remult"
-import { EntityRegistry, EventBus, EVENTS, evalRoleCheck, hasRole, type IActionMeta } from "@iraf/core"
+import { EntityRegistry, EventBus, EVENTS, evalRoleCheck, hasRole, ModuleRegistry, type IActionMeta } from "@iraf/core"
 import { ChevronLeft, Save, Loader2, X } from "lucide-react"
 import * as LucideIcons from "lucide-react"
-import { Button, Separator, useAuth, PluginRegistry, SlotArea, cn } from "@iraf/react"
+import { Button, Separator, useAuth, PluginRegistry, SlotArea, cn, useI18n } from "@iraf/react"
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -24,13 +24,18 @@ export function DetailView({
 }: {
   entityClass: new () => object
   viewOptions?: Record<string, any>
-  /** 路由基礎路徑，例如 "/sales/customers"。由 iRAFApp 傳入 */
+  /** Base route path, e.g. "/sales/customers". Provided by iRAFApp. */
   basePath?: string
 }) {
+  const { t } = useI18n("iraf:core")
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
   const meta = EntityRegistry.getMeta(entityClass as unknown as Function)
+  const moduleKey = ModuleRegistry.findModuleByEntity(entityClass as unknown as Function)?.key
+  const moduleNs = moduleKey ? `iraf:module:${moduleKey}` : undefined
+  const tModule = (key?: string, fallback?: string) =>
+    key ? t(key, { ns: moduleNs, defaultValue: fallback ?? key }) : (fallback ?? "")
   const base = basePath ?? (meta ? `/${meta.key}` : "")
   const fieldMeta = EntityRegistry.getFieldMeta(entityClass as unknown as Function)
   const actions = EntityRegistry.getActions(entityClass as unknown as Function)
@@ -61,7 +66,7 @@ export function DetailView({
       .findId(id!)
       .then((data) => {
         if (data) setItem(data as any)
-        else setGlobalError("資料不存在")
+        else setGlobalError(t("recordNotFound"))
       })
       .catch((e: any) => setGlobalError(e?.message ?? String(e)))
       .finally(() => setLoading(false))
@@ -147,7 +152,7 @@ export function DetailView({
     return (
       <div className="flex items-center gap-2 text-muted-foreground p-8">
         <Loader2 className="h-4 w-4 animate-spin" />
-        載入中…
+        {t("loading")}
       </div>
     )
 
@@ -156,7 +161,7 @@ export function DetailView({
   for (const [key, fm] of Object.entries(fieldMeta)) {
     if (fm.auditField) continue
     if (evalBool(fm.hidden, item)) continue
-    const group = fm.group || "一般資訊"
+    const group = fm.group || t("generalInfo")
     if (!groupedFields[group]) groupedFields[group] = []
     groupedFields[group].push({ key, ...fm })
   }
@@ -175,20 +180,21 @@ export function DetailView({
       <div className="flex items-center justify-between px-1">
         <div className="space-y-1.5">
           <h2 className="text-3xl font-bold tracking-tight">
-            {isNew ? "新增" : "編輯"}{meta.caption}
+            {isNew ? t("add") : t("edit")}
+            {tModule(meta.caption, meta.caption)}
           </h2>
           <p className="text-sm text-muted-foreground">
             {isNew
-              ? `建立一筆新的 ${meta.caption} 資料`
-              : `修改現有的 ${meta.caption} 詳細資訊`}
+              ? t("detailCreateDesc", { name: tModule(meta.caption, meta.caption) })
+              : t("detailEditDesc", { name: tModule(meta.caption, meta.caption) })}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {/* detail-header slot — 返回按鈕左側 */}
+          {/* detail-header slot — left of back button */}
           <SlotArea prefix="detail-header" context={{ entityClass, item, isNew }} />
           <Button variant="ghost" onClick={() => navigate(-1)} size="sm" className="h-8">
             <ChevronLeft className="h-4 w-4 mr-1" />
-            返回
+            {t("back")}
           </Button>
         </div>
       </div>
@@ -216,11 +222,11 @@ export function DetailView({
                   ) : IconComp ? (
                     <IconComp className="mr-2 h-4 w-4" />
                   ) : null}
-                  {am.caption}
+                  {tModule(am.caption, am.caption)}
                 </Button>
               )
             })}
-          {/* detail-toolbar slot — Action Bar 之後 */}
+          {/* detail-toolbar slot — after action bar */}
           <SlotArea prefix="detail-toolbar" context={{ entityClass, item, isNew }} />
         </div>
       )}
@@ -237,7 +243,9 @@ export function DetailView({
           {Object.entries(groupedFields).map(([groupName, fields]) => (
             <section key={groupName} className="space-y-2">
               <div className="space-y-0.5">
-                <h3 className="text-base font-semibold tracking-tight">{groupName}</h3>
+                <h3 className="text-base font-semibold tracking-tight">
+                  {tModule(groupName, groupName)}
+                </h3>
                 <Separator />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-4 px-1">
@@ -251,7 +259,7 @@ export function DetailView({
                       <div key={field.key} className={cn("space-y-1.5", field._type === "collection" && "col-span-full")}>
                         {field._type !== "collection" && (
                           <label className="text-[11px] font-bold leading-none text-muted-foreground uppercase tracking-tight">
-                            {field.caption ?? field.key}
+                            {tModule(field.caption, field.caption ?? field.key)}
                             {field.required && <span className="text-destructive ml-1">*</span>}
                           </label>
                         )}
@@ -265,7 +273,7 @@ export function DetailView({
                             ? PluginRegistry.resolve("control", controlName)
                             : PluginRegistry.resolveDefault("control", field._type ?? "string")
                           const ControlComponent = plugin?.component as React.ComponentType<any> | undefined
-                          if (!ControlComponent) return <span className="text-xs text-muted-foreground">— 無 control —</span>
+                          if (!ControlComponent) return <span className="text-xs text-muted-foreground">{t("noControl")}</span>
                           return (
                             <div className={errors[field.key] ? "ring-1 ring-destructive rounded-lg" : ""}>
                               <ControlComponent
@@ -292,11 +300,11 @@ export function DetailView({
           ))}
         </div>
 
-        {/* Save / Cancel */}
+      {/* Save / Cancel */}
         <div className="pt-6 border-t flex justify-end gap-3 px-1">
           <Button type="button" variant="ghost" onClick={() => navigate(base)}>
             <X className="mr-2 h-4 w-4" />
-            取消
+            {t("cancel")}
           </Button>
           {canSave && (
             <Button type="submit" disabled={saving}>
@@ -305,7 +313,7 @@ export function DetailView({
               ) : (
                 <Save className="mr-2 h-4 w-4" />
               )}
-              儲存
+              {t("save")}
             </Button>
           )}
         </div>
@@ -314,15 +322,17 @@ export function DetailView({
       {/* Audit Info */}
       {!isNew && auditEntries.length > 0 && (
         <div className="px-1 pt-4 border-t">
-          <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-tight mb-3">稽核資訊</p>
+          <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-tight mb-3">{t("auditInfo")}</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {auditEntries.map(([key, fm]) => (
               <div key={key} className="space-y-0.5">
-                <p className="text-[10px] text-muted-foreground uppercase tracking-tight">{fm.caption ?? key}</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-tight">
+                  {tModule(fm.caption, fm.caption ?? key)}
+                </p>
                 <p className="text-xs text-foreground/80">
                   {item[key]
                     ? item[key] instanceof Date || typeof item[key] === "string"
-                      ? new Date(item[key]).toLocaleString("zh-TW")
+                      ? new Date(item[key]).toLocaleString()
                       : String(item[key])
                     : "—"}
                 </p>

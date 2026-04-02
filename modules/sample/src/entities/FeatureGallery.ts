@@ -3,10 +3,10 @@ import { iEntity, iField, iController, BaseObject, passwordRules, iAction } from
 import { remult } from "remult"
 
 /**
- * FeatureGallery — iRAF 全功能展示實體。
+ * FeatureGallery — full-feature demo entity for iRAF.
  */
 @iEntity("feature-gallery", {
-  caption: "功能展示",
+  caption: "Feature Gallery",
   icon: "Component",
   allowedRoles: {
     read:   ["admins", "managers", "users"],
@@ -16,83 +16,83 @@ import { remult } from "remult"
   },
 })
 export class FeatureGallery extends BaseObject {
-  // --- 基礎分組：基本資訊 ---
+  // --- Base group: General Info ---
 
   @iField.string({
-    caption: "標題 (admins 可寫)",
+    caption: "Title (admins only)",
     required: true,
-    group: "基本資訊",
+    group: "General Info",
     order: 1,
     writeRoles: ["admins"],
-    placeholder: "普通使用者在此欄位為唯讀"
+    placeholder: "Read-only for non-admins"
   })
   title = ""
 
   @iField.string({
-    caption: "詳細描述 (textarea)",
-    group: "基本資訊",
+    caption: "Description (textarea)",
+    group: "General Info",
     order: 2,
     control: "textarea",
   })
   description = ""
 
   @iField.string({
-    caption: "分類標籤",
-    group: "基本資訊",
+    caption: "Category",
+    group: "General Info",
     order: 3,
-    placeholder: "自定義分類"
+    placeholder: "Custom category"
   })
   category = "Default"
 
-  // --- 進階分組：數值與日期 ---
+  // --- Advanced group: Numbers & Dates ---
 
   @iField.number({
-    caption: "數值計數器",
-    group: "進階測試",
+    caption: "Counter",
+    group: "Advanced",
     order: 10,
-    validate: (v) => (v < 0 ? "計數不能小於 0" : undefined)
+    validate: (v) => (v < 0 ? "Counter cannot be less than 0." : undefined)
   })
   counter = 0
 
   @iField.date({
-    caption: "生效日期",
-    group: "進階測試",
+    caption: "Effective Date",
+    group: "Advanced",
     order: 11,
   })
   effectiveDate = new Date()
 
   @iField.boolean({
-    caption: "已鎖定 (影響下方欄位)",
-    group: "進階測試",
+    caption: "Locked (affects fields below)",
+    group: "Advanced",
     order: 12,
   })
   isLocked = false
 
-  // --- 動態 UI 連動測試 ---
+  // --- Dynamic UI rules ---
 
   @iField.string({
-    caption: "鎖定時唯讀",
-    group: "動態規則範例",
+    caption: "Read-only when locked",
+    group: "Dynamic Rules",
     order: 20,
     readOnly: (e: FeatureGallery) => e.isLocked,
-    placeholder: "當「已鎖定」勾選時，此處將變為唯讀"
+    placeholder: "Becomes read-only when locked"
   })
   lockControlledText = ""
 
   @iField.string({
-    caption: "鎖定時隱藏的秘密",
-    group: "動態規則範例",
+    caption: "Hidden when locked",
+    group: "Dynamic Rules",
     order: 21,
     hidden: (e: FeatureGallery) => e.isLocked,
-    placeholder: "當「已鎖定」勾選時，此欄位將完全消失"
+    placeholder: "Hidden when locked"
   })
   secretInfo = ""
 
-  // --- 安全與系統分組 ---
+  // --- Security & System ---
 
   @iField.string({
-    caption: "安全密碼 (passwordRules)",
-    group: "安全與系統碼",
+    caption: "Password (passwordRules)",
+    group: "Security & System",
     order: 30,
     control: "password",
     validate: passwordRules({ minLength: 8, requireUppercase: true, requireNumber: true }),
@@ -100,8 +100,8 @@ export class FeatureGallery extends BaseObject {
   demoPassword = ""
 
   @iField.json({
-    caption: "角色分配集 (roles control)",
-    group: "安全與系統碼",
+    caption: "Assigned Roles (roles control)",
+    group: "Security & System",
     order: 31,
     control: "roles",
     writeRoles: ["admins"],
@@ -109,75 +109,75 @@ export class FeatureGallery extends BaseObject {
   assignedRoles: string[] = []
 
   @iField.string({
-    caption: "優先級 (Enum/Options)",
-    group: "安全與系統碼",
+    caption: "Priority (Enum/Options)",
+    group: "Security & System",
     order: 32,
     options: ["Low", "Medium", "High"],
-    placeholder: "展示下拉選單 metadata"
+    placeholder: "Demonstrate select metadata"
   })
   priority = "Medium"
 
   @iField.string({
-    caption: "負責人 (Reference/Lookup)",
-    group: "安全與系統碼",
+    caption: "Assignee (Reference/Lookup)",
+    group: "Security & System",
     order: 33,
     ref: "users",
     refLabel: "displayName",
-    placeholder: "展示外鍵關聯至 users 實體"
+    placeholder: "Demonstrate reference lookup to users"
   })
   assigneeId = ""
 }
 
 /**
- * FeatureGalleryController — 展示 iAction 的各種進階用法與 RBAC 限制。
- * 定義於 FeatureGallery 之後，以便使用 @iController(FeatureGallery)。
+ * FeatureGalleryController — advanced iAction demos with RBAC constraints.
+ * Declared after FeatureGallery so we can use @iController(FeatureGallery).
  */
 @iController(FeatureGallery)
 export class FeatureGalleryController {
   /**
-   * 基礎數值增加（管理員與經理可執行）。
+   * Increment counter (admins and managers).
    */
   @iAction({
-    caption: "增加數值",
+    caption: "Increment Counter",
     icon: "PlusCircle",
     allowedRoles: ["admins", "managers"],
   })
   static async incrementCount(id: string): Promise<void> {
     const repo = remult.repo(FeatureGallery)
     const item = await repo.findId(id)
-    if (!item) throw new Error("找不到對象")
+    if (!item) throw new Error("Record not found.")
     item.counter += 1
     await repo.save(item)
   }
 
   /**
-   * 切換記錄鎖定狀態（僅限管理員）。
+   * Toggle lock state (admins only).
    */
   @iAction({
-    caption: "切換鎖定狀態",
+    caption: "Toggle Lock",
     icon: "Lock",
     allowedRoles: ["admins"],
   })
   static async toggleLock(id: string): Promise<void> {
     const repo = remult.repo(FeatureGallery)
     const item = await repo.findId(id)
-    if (!item) throw new Error("找不到對象")
+    if (!item) throw new Error("Record not found.")
     item.isLocked = !item.isLocked
     await repo.save(item)
   }
 
   /**
-   * 管理員重設秘密資訊。
+   * Reset secret (admins only).
    */
   @iAction({
-    caption: "重設秘密",
+    caption: "Reset Secret",
     icon: "Key",
     allowedRoles: ["admins"],
   })
   static async resetSecret(id: string): Promise<void> {
     const repo = remult.repo(FeatureGallery)
     const item = await repo.findId(id)
-    if (!item) throw new Error("找不到對象")
+    if (!item) throw new Error("Record not found.")
     item.secretInfo = "NEW-SECRET-" + Math.random().toString(36).slice(2, 7).toUpperCase()
     await repo.save(item)
   }

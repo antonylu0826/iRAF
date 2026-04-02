@@ -1,4 +1,4 @@
-// @iraf/plugin-system — iRAF 內建插件（ListView、DetailView、built-in controls）
+// @iraf/plugin-system — iRAF built-in plugins (ListView, DetailView, built-in controls)
 export { ListView } from "./ListView"
 export { DetailView } from "./DetailView"
 export { initPlugins } from "./initPlugins"

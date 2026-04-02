@@ -1,4 +1,4 @@
-// @iraf/react — iRAF React UI 層（框架殼）
+// @iraf/react — iRAF React UI layer (shell)
 import "reflect-metadata"
 
 export const IRAF_REACT_VERSION = "0.2.0"
@@ -17,8 +17,11 @@ export type { AuthUser } from "./context/AuthContext"
 export { PluginRegistry } from "./registry/PluginRegistry"
 export type { IPluginMeta, IControlProps, IListViewProps, IDetailViewProps } from "./registry/PluginRegistry"
 export { initModulePlugins } from "./initModulePlugins"
+export { initI18n, t } from "./i18n/i18n"
+export { I18nRegistry } from "./i18n/registry"
+export { useI18n } from "./i18n/useI18n"
 
-// ─── UI Components（供 plugins/system 使用）───────────────────────────────────
+// ─── UI Components (used by plugins/system) ──────────────────────────────────
 export { Button } from "./components/ui/button"
 export { Separator } from "./components/ui/separator"
 export {

@@ -1,19 +1,19 @@
 import { EntityRegistry } from "./EntityRegistry"
 import type { IModuleDef, IModuleOptions, IMenuItem } from "../types/module"
 
-/** 框架預設系統角色 */
+/** Default system roles */
 export const SYSTEM_ROLES: readonly string[] = ["admins", "users"]
 
 /**
- * defineModule — 宣告一個 iRAF 功能模組。
+ * defineModule — declare an iRAF module.
  *
- * 純函式，回傳 IModuleDef（Readonly）。
- * 實際登記由 ModuleRegistry.use() 完成。
+ * Pure function returning IModuleDef (readonly).
+ * Actual registration is done via ModuleRegistry.use().
  *
  * ```ts
  * export const SalesModule = defineModule({
  *   key: "sales",
- *   caption: "銷售",
+ *   caption: "Sales",
  *   entities: [Customer],
  *   controllers: [CustomerController],
  * })
@@ -24,10 +24,10 @@ export function defineModule(options: IModuleOptions): IModuleDef {
 }
 
 /**
- * ModuleRegistry — iRAF 模組登記簿。
+ * ModuleRegistry — iRAF module registry.
  *
- * 取代散落式的 `EntityRegistry.register()` + `@iEntity({ module })` 寫法。
- * `use()` 會自動登記實體與控制器。
+ * Replaces scattered `EntityRegistry.register()` + `@iEntity({ module })` usage.
+ * `use()` auto-registers entities and controllers.
  *
  * ```ts
  * ModuleRegistry.use(SalesModule, SystemModule)
@@ -37,21 +37,21 @@ export class ModuleRegistry {
   private static _modules: IModuleDef[] = []
 
   /**
-   * 登記一或多個模組。
-   * - 同 key 重複登記拋錯
-   * - 驗證 requires 依賴（已登記的模組 key 須存在）
-   * - 自動呼叫 EntityRegistry.register() 登記實體
+   * Register one or more modules.
+   * - Throws on duplicate keys
+   * - Validates requires dependencies (registered keys must exist)
+   * - Auto-calls EntityRegistry.register() for entities
    */
   static use(...modules: IModuleDef[]): void {
     for (const mod of modules) {
-      // 重複登記檢查
+      // Duplicate registration check
       if (this._modules.find((m) => m.key === mod.key)) {
         throw new Error(
-          `[ModuleRegistry] 模組 "${mod.key}" 已存在。請確認沒有重複呼叫 use()。`
+          `[ModuleRegistry] Module "${mod.key}" already exists. Ensure use() isn't called twice.`
         )
       }
 
-      // 依賴檢查
+      // Dependency check
       if (mod.requires && mod.requires.length > 0) {
         const registeredKeys = new Set([
           ...this._modules.map((m) => m.key),
@@ -60,8 +60,8 @@ export class ModuleRegistry {
         for (const dep of mod.requires) {
           if (!registeredKeys.has(dep)) {
             throw new Error(
-              `[ModuleRegistry] 模組 "${mod.key}" 依賴 "${dep}"，但 "${dep}" 尚未登記。` +
-              ` 請確認 "${dep}" 模組已在 "${mod.key}" 之前傳入 use()。`
+              `[ModuleRegistry] Module "${mod.key}" requires "${dep}", but "${dep}" is not registered.` +
+              ` Ensure "${dep}" is passed to use() before "${mod.key}".`
             )
           }
         }
@@ -69,12 +69,12 @@ export class ModuleRegistry {
 
       this._modules.push(mod)
 
-      // 自動登記實體
+      // Auto-register entities
       if (mod.entities && mod.entities.length > 0) {
         EntityRegistry.register(...mod.entities)
       }
 
-      // 自動登記 controllers（補充未用 @iController 自動登記的情況）
+      // Auto-register controllers (in case @iController wasn't used)
       if (mod.controllers && mod.controllers.length > 0) {
         for (const ctrl of mod.controllers) {
           EntityRegistry.registerController(ctrl)
@@ -83,20 +83,20 @@ export class ModuleRegistry {
     }
   }
 
-  /** 取得所有已登記模組（按 use 傳入順序）。 */
+  /** Get all registered modules (in use() order). */
   static getAll(): IModuleDef[] {
     return [...this._modules]
   }
 
-  /** 取得指定 key 的模組，找不到時回傳 undefined。 */
+  /** Get a module by key; returns undefined if not found. */
   static get(key: string): IModuleDef | undefined {
     return this._modules.find((m) => m.key === key)
   }
 
   /**
-   * 取得模組的選單項目。
-   * - 若有指定 `menu`，依 order 排序後回傳
-   * - 若未指定，自動從 entities 依序生成 type: "entity" 項目
+   * Get menu items for a module.
+   * - If `menu` is provided, sort by order and return
+   * - Otherwise, auto-generate from entities as type: "entity"
    */
   static getMenu(key: string): IMenuItem[] {
     const mod = this.get(key)
@@ -106,7 +106,7 @@ export class ModuleRegistry {
       return [...mod.menu].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
     }
 
-    // 自動從 entities 生成
+    // Auto-generate from entities
     return (mod.entities ?? []).map((entity) => ({
       type: "entity" as const,
       entity,
@@ -114,8 +114,8 @@ export class ModuleRegistry {
   }
 
   /**
-   * 尋找某個 entity class 所屬的模組。
-   * 供路由生成使用。
+   * Find the module that owns a given entity class.
+   * Used for route generation.
    */
   static findModuleByEntity(entityClass: Function): IModuleDef | undefined {
     return this._modules.find((mod) =>
@@ -124,8 +124,7 @@ export class ModuleRegistry {
   }
 
   /**
-   * 聚合所有角色：系統預設角色 + 各模組宣告的 roles。
-   * 去重後回傳。
+   * Aggregate roles: system defaults + module-declared roles.
    */
   static getAllRoles(): string[] {
     const all = new Set<string>(SYSTEM_ROLES)
@@ -138,9 +137,9 @@ export class ModuleRegistry {
   }
 
   /**
-   * 執行所有模組的 client 側初始化（onInit）。
-   * 依 use() 的登記順序依序執行，支援 async。
-   * 應在 initPlugins() 之前、React render 之前呼叫。
+   * Run client-side init hooks (onInit) for all modules.
+   * Executes in use() order; supports async.
+   * Should run before initPlugins() and React render.
    */
   static async initAll(): Promise<void> {
     for (const mod of this._modules) {
@@ -149,8 +148,8 @@ export class ModuleRegistry {
   }
 
   /**
-   * 執行所有模組的 server 側初始化（onServerInit）。
-   * 應在 remultExpress 啟動後呼叫。
+   * Run server-side init hooks (onServerInit) for all modules.
+   * Should run after remultExpress starts.
    */
   static async serverInitAll(): Promise<void> {
     for (const mod of this._modules) {
@@ -159,8 +158,8 @@ export class ModuleRegistry {
   }
 
   /**
-   * 執行所有模組的銷毀 hook（onDestroy）。
-   * 主要用於測試清理或模組熱替換。
+   * Run destroy hooks (onDestroy) for all modules.
+   * Mainly for tests or module hot-reload.
    */
   static destroyAll(): void {
     for (const mod of this._modules) {
@@ -168,7 +167,7 @@ export class ModuleRegistry {
     }
   }
 
-  /** 清除所有登記（主要用於測試）。 */
+  /** Clear all registrations (mainly for tests). */
   static clear(): void {
     this.destroyAll()
     this._modules = []

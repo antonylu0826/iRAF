@@ -4,6 +4,7 @@ import { LogOut, Menu } from "lucide-react"
 import { Sidebar } from "./Sidebar"
 import { SlotArea } from "./SlotArea"
 import { useAuth } from "../context/AuthContext"
+import { useI18n } from "../i18n/useI18n"
 import { Button } from "./ui/button"
 import { Separator } from "./ui/separator"
 import { cn } from "../lib/utils"
@@ -22,6 +23,7 @@ function useIsDesktop() {
 
 function AppHeader({ onToggleSidebar }: { onToggleSidebar: () => void }) {
   const { user, logout } = useAuth()
+  const { t } = useI18n("iraf:core")
 
   return (
     <header className="h-14 shrink-0 border-b bg-background flex items-center justify-between px-6 sticky top-0 z-30 shadow-sm">
@@ -31,14 +33,14 @@ function AppHeader({ onToggleSidebar }: { onToggleSidebar: () => void }) {
           size="icon"
           onClick={onToggleSidebar}
           className="h-8 w-8"
-          aria-label="切換側邊欄"
+          aria-label={t("toggleSidebar")}
         >
           <Menu className="h-4 w-4" />
         </Button>
       </div>
       {user && (
         <div className="flex items-center gap-4 ml-auto">
-          {/* appbar slot — logout 左側 */}
+          {/* appbar slot — left of logout */}
           <SlotArea prefix="appbar" />
           <div className="flex flex-col items-end">
             <span className="text-xs font-bold tracking-tight">{user.name}</span>
@@ -52,7 +54,7 @@ function AppHeader({ onToggleSidebar }: { onToggleSidebar: () => void }) {
             className="h-8 gap-2 text-muted-foreground hover:bg-muted transition-colors px-2"
           >
             <LogOut className="h-4 w-4" />
-            <span className="hidden sm:inline font-semibold text-xs text-foreground/80">登出</span>
+            <span className="hidden sm:inline font-semibold text-xs text-foreground/80">{t("logout")}</span>
           </Button>
         </div>
       )}

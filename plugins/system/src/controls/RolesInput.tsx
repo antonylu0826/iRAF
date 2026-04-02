@@ -5,9 +5,10 @@
  */
 import React from "react"
 import { ModuleRegistry } from "@iraf/core"
-import { cn, type IControlProps } from "@iraf/react"
+import { cn, useI18n, type IControlProps } from "@iraf/react"
 
 export function RolesInput({ value, onChange, disabled }: IControlProps) {
+  const { t } = useI18n("iraf:core")
   const allRoles = ModuleRegistry.getAllRoles()
   const selected: string[] = Array.isArray(value) ? value : []
 
@@ -39,7 +40,7 @@ export function RolesInput({ value, onChange, disabled }: IControlProps) {
         </label>
       ))}
       {allRoles.length === 0 && (
-        <span className="text-xs text-muted-foreground">尚無可用角色</span>
+        <span className="text-xs text-muted-foreground">{t("noRolesAvailable")}</span>
       )}
     </div>
   )

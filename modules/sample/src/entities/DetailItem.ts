@@ -2,11 +2,11 @@
 import { iEntity, iField, BaseObject } from "@iraf/core"
 
 /**
- * DetailItem — MasterItem 的明細行。
- * 涵蓋多種欄位類型，作為 SubGrid 各 control 表現的示範。
+ * DetailItem — detail rows for MasterItem.
+ * Covers multiple field types as a SubGrid control demo.
  */
 @iEntity("detail-items", {
-  caption: "明細項目",
+  caption: "Detail Items",
   icon: "ListTree",
   allowedRoles: {
     read:   ["admins", "managers", "users"],
@@ -16,39 +16,39 @@ import { iEntity, iField, BaseObject } from "@iraf/core"
   },
 })
 export class DetailItem extends BaseObject {
-  @iField.string({ caption: "品項名稱", required: true, order: 1 })
+  @iField.string({ caption: "Item Name", required: true, order: 1 })
   name = ""
 
-  @iField.number({ caption: "數量", order: 2 })
+  @iField.number({ caption: "Quantity", order: 2 })
   quantity = 1
 
-  @iField.number({ caption: "單價", order: 3 })
+  @iField.number({ caption: "Unit Price", order: 3 })
   unitPrice = 0
 
   @iField.string({
-    caption: "分類",
-    options: ["原料", "半成品", "成品", "耗材"],
+    caption: "Category",
+    options: ["Raw", "Semi-finished", "Finished", "Supplies"],
     order: 4,
   })
   category = ""
 
-  @iField.date({ caption: "到期日", order: 5 })
+  @iField.date({ caption: "Due Date", order: 5 })
   dueDate?: Date
 
-  @iField.boolean({ caption: "已確認", order: 6 })
+  @iField.boolean({ caption: "Confirmed", order: 6 })
   confirmed = false
 
-  @iField.string({ caption: "備註", control: "textarea", order: 7 })
+  @iField.string({ caption: "Note", control: "textarea", order: 7 })
   note = ""
 
   @iField.string({
-    caption: "負責人",
+    caption: "Assignee",
     ref: "users",
     refLabel: "displayName",
     order: 8,
   })
   assigneeId = ""
 
-  @iField.string({ caption: "主項目 ID", hidden: true })
+  @iField.string({ caption: "Master ID", hidden: true })
   masterId = ""
 }

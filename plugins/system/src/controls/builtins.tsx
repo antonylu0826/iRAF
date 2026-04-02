@@ -1,14 +1,14 @@
 /**
  * iRAF Built-in Control Components
  *
- * 所有 built-in controls 遵循 IControlProps 介面。
- * 透過 PluginRegistry 登記後，DetailView 可依 field metadata 動態解析。
+ * All built-in controls implement IControlProps.
+ * After registration in PluginRegistry, DetailView resolves them via field metadata.
  */
 import React from "react"
 import { Eye, EyeOff } from "lucide-react"
-import { cn, type IControlProps } from "@iraf/react"
+import { cn, useI18n, type IControlProps } from "@iraf/react"
 
-// ─── 共用樣式 ─────────────────────────────────────────────────────────────────
+// ─── shared styles ────────────────────────────────────────────────────────────
 
 const inputClass =
   "h-9 w-full min-w-0 rounded-lg border border-input bg-background px-2.5 py-1 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50"
@@ -106,6 +106,7 @@ export function TextareaInput({ value, onChange, disabled, field }: IControlProp
 // ─── PasswordInput ────────────────────────────────────────────────────────────
 
 export function PasswordInput({ value, onChange, disabled, field }: IControlProps) {
+  const { t } = useI18n("iraf:core")
   const [show, setShow] = React.useState(false)
   return (
     <div className="relative">
@@ -122,7 +123,7 @@ export function PasswordInput({ value, onChange, disabled, field }: IControlProp
         tabIndex={-1}
         onClick={() => setShow((s) => !s)}
         className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors outline-none"
-        aria-label={show ? "隱藏密碼" : "顯示密碼"}
+        aria-label={show ? t("hidePassword") : t("showPassword")}
       >
         {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
       </button>

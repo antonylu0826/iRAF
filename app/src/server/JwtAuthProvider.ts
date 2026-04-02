@@ -1,5 +1,5 @@
 // app/src/server/JwtAuthProvider.ts
-// JWT 認證策略 — 實作 IAuthProvider 介面
+// JWT auth strategy — implements IAuthProvider
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 import { remult } from "remult"
@@ -30,16 +30,16 @@ export class JwtAuthProvider implements IAuthProvider {
 
   async login(credentials: Record<string, any>): Promise<{ token: string; user: IAuthUser }> {
     const { username, password } = credentials as { username?: string; password?: string }
-    if (!username || !password) throw new Error("帳號與密碼為必填")
+    if (!username || !password) throw new Error("Username and password are required.")
 
     const repo = remult.repo(AppUser)
     const user = await repo.findFirst({ username })
-    if (!user) throw new Error("帳號或密碼錯誤")
+    if (!user) throw new Error("Invalid username or password.")
 
     const valid = await bcrypt.compare(password, user.passwordHash)
-    if (!valid) throw new Error("帳號或密碼錯誤")
+    if (!valid) throw new Error("Invalid username or password.")
 
-    if (user.isActive === false) throw new Error("帳號已停用，請聯絡管理員")
+    if (user.isActive === false) throw new Error("Account disabled. Please contact an administrator.")
 
     const token = this.signToken(user)
     return {
