@@ -6,7 +6,7 @@ import "reflect-metadata"
 export const IRAF_VERSION = "0.1.0"
 
 // ─── 類型定義 ──────────────────────────────────────────────────────────────────
-export type { IEntityOptions, IEntityMeta, IFieldOptions, IFieldMeta, IActionMeta, IEntityRoles, IUserContext, RoleCheck } from "./types/metadata"
+export type { IEntityOptions, IEntityMeta, IFieldOptions, IFieldMeta, IActionMeta, IEntityRoles, IUserContext, RoleCheck, ICollectionMeta } from "./types/metadata"
 export { IRAF_ENTITY_KEY, IRAF_FIELD_KEY, IRAF_ACTION_KEY, IRAF_CONTROLLER_KEY } from "./types/metadata"
 
 // ─── Decorators ───────────────────────────────────────────────────────────────

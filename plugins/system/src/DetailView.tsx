@@ -4,7 +4,7 @@ import { remult } from "remult"
 import { EntityRegistry, EventBus, EVENTS, evalRoleCheck, hasRole, type IActionMeta } from "@iraf/core"
 import { ChevronLeft, Save, Loader2, X } from "lucide-react"
 import * as LucideIcons from "lucide-react"
-import { Button, Separator, useAuth, PluginRegistry, SlotArea } from "@iraf/react"
+import { Button, Separator, useAuth, PluginRegistry, SlotArea, cn } from "@iraf/react"
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -88,13 +88,30 @@ export function DetailView({
     setGlobalError(null)
     try {
       const repo = remult.repo(entityClass)
+
+      // Separate collection fields from master data
+      const collectionEntries = Object.entries(fieldMeta).filter(
+        ([, fm]) => fm._type === "collection" && fm.collection
+      )
+      const masterData: any = { ...item }
+      for (const [key] of collectionEntries) delete masterData[key]
+
       await EventBus.emit(EVENTS.ENTITY_SAVING, { entityClass, item, isNew })
+      const saved = isNew ? await repo.insert(masterData) : await repo.save(masterData)
+
+      // For new master: save pending detail rows collected via SubGrid onChange
       if (isNew) {
-        await repo.insert(item)
-      } else {
-        await repo.save(item)
+        for (const [key, fm] of collectionEntries) {
+          const pendingRows: any[] = item[key] ?? []
+          if (pendingRows.length === 0) continue
+          const childRepo = remult.repo(fm.collection!.entity() as any)
+          for (const row of pendingRows) {
+            await childRepo.insert({ ...row, [fm.collection!.foreignKey]: (saved as any).id })
+          }
+        }
       }
-      await EventBus.emit(EVENTS.ENTITY_SAVED, { entityClass, item, isNew })
+
+      await EventBus.emit(EVENTS.ENTITY_SAVED, { entityClass, item: saved, isNew })
       navigate(base)
     } catch (e: any) {
       setGlobalError(e?.message ?? String(e))
@@ -224,7 +241,7 @@ export function DetailView({
                       evalBool(field.readOnly, item) ||
                       (field.writeRoles && !hasRole(user?.roles ?? [], field.writeRoles))
                     return (
-                      <div key={field.key} className="space-y-1.5">
+                      <div key={field.key} className={cn("space-y-1.5", field._type === "collection" && "col-span-full")}>
                         <label className="text-[11px] font-bold leading-none text-muted-foreground uppercase tracking-tight">
                           {field.caption ?? field.key}
                           {field.required && <span className="text-destructive ml-1">*</span>}

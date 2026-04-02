@@ -1,6 +1,6 @@
 import "reflect-metadata"
 import { Fields, Validators } from "remult"
-import { IRAF_FIELD_KEY, type IFieldMeta, type IFieldOptions } from "../types/metadata"
+import { IRAF_FIELD_KEY, type IFieldMeta, type IFieldOptions, type ICollectionMeta } from "../types/metadata"
 
 // ─── 內部工具函式 ──────────────────────────────────────────────────────────────
 
@@ -117,6 +117,35 @@ export const iField = {
         caption: options.caption,
       })(target, propertyKey as string)
       storeFieldMeta(target, propertyKey, { ...extractFieldMeta(options), _type: "json" })
+    }
+  },
+
+  /**
+   * 子集合欄位（Master-Detail SubGrid）。
+   *
+   * 此欄位本身不儲存資料，子項目透過外鍵關聯存在獨立實體中。
+   * DetailView 會自動渲染為 SubGrid control。
+   *
+   * ```ts
+   * @iField.collection({
+   *   caption: "明細項目",
+   *   entity: () => DetailItem,
+   *   foreignKey: "masterId",
+   *   order: 10,
+   * })
+   * details: DetailItem[] = []
+   * ```
+   */
+  collection(options: IFieldOptions & ICollectionMeta): PropertyDecorator {
+    return (target: object, propertyKey: string | symbol) => {
+      // 使用 Fields.json() 讓 Remult 認識此屬性，實際資料由 SubGrid 直接查詢子表
+      Fields.json({ caption: options.caption })(target, propertyKey as string)
+      const { entity, foreignKey, ...rest } = options
+      storeFieldMeta(target, propertyKey, {
+        ...extractFieldMeta(rest as IFieldOptions),
+        _type: "collection",
+        collection: { entity, foreignKey },
+      })
     }
   },
 }

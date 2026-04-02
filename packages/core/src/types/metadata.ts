@@ -63,6 +63,19 @@ export interface IFieldMeta {
   refLabel?: string
   /** ref 欄位：select / modal 切換閾值（預設 25，筆數 ≤ 此值用 <select>，超過用 Modal） */
   refThreshold?: number
+  /** 供 Master-Detail (SubGrid) 使用的子集合設定 */
+  collection?: ICollectionMeta
+}
+
+/**
+ * Master-Detail 子集合 metadata。
+ * 由 @iField.collection 裝飾器產生，供 SubGrid control 使用。
+ */
+export interface ICollectionMeta {
+  /** 子實體 class（lazy function 避免循環依賴） */
+  entity: () => Function
+  /** 子實體上指向父實體 ID 的外鍵欄位名稱 */
+  foreignKey: string
 }
 
 /** @iField.string / @iField.number 等的選項 */

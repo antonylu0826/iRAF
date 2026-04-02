@@ -20,6 +20,7 @@ import {
 import { RolesInput } from "./controls/RolesInput"
 import { SelectInput } from "./controls/SelectInput"
 import { LookupInput } from "./controls/LookupInput"
+import { SubGrid } from "./controls/SubGrid"
 
 let _initialized = false
 
@@ -53,11 +54,13 @@ export function initPlugins(): void {
   PluginRegistry.register("control", { name: "roles",    caption: "角色選擇",  component: RolesInput    })
   PluginRegistry.register("control", { name: "select",   caption: "下拉選單",  component: SelectInput   })
   PluginRegistry.register("control", { name: "lookup",   caption: "關聯選取",  component: LookupInput   })
+  PluginRegistry.register("control", { name: "subgrid",  caption: "子表格",    component: SubGrid       })
 
   // ─── field type → default control ───────────────────────────────────────────
   PluginRegistry.setDefault("control", "string",  "text")
   PluginRegistry.setDefault("control", "number",  "number")
   PluginRegistry.setDefault("control", "date",    "date")
   PluginRegistry.setDefault("control", "boolean", "boolean")
-  PluginRegistry.setDefault("control", "json",    "text")
+  PluginRegistry.setDefault("control", "json",       "text")
+  PluginRegistry.setDefault("control", "collection", "subgrid")
 }
