@@ -21,11 +21,28 @@ export { BaseObject } from "./base/BaseObject"
 // ─── Registry ─────────────────────────────────────────────────────────────────
 export { EntityRegistry } from "./registry/EntityRegistry"
 export { ModuleRegistry, defineModule, SYSTEM_ROLES } from "./registry/ModuleRegistry"
+export { ServiceRegistry } from "./registry/ServiceRegistry"
 
 // ─── Module types ─────────────────────────────────────────────────────────────
 export type { IModuleDef, IModuleOptions, IMenuItem, IModulePlugin } from "./types/module"
 
+// ─── Service types ────────────────────────────────────────────────────────────
+export type { IAuthProvider, IAuthUser, INotifier } from "./types/services"
+export { SERVICE_KEYS } from "./types/services"
+
+// ─── Events ───────────────────────────────────────────────────────────────────
+export { EventBus, EVENTS } from "./events/EventBus"
+export type {
+  EventHandler,
+  EntitySavingPayload,
+  EntitySavedPayload,
+  EntityDeletingPayload,
+  EntityDeletedPayload,
+  AuthLoginPayload,
+} from "./events/EventBus"
+
 // ─── Utils ────────────────────────────────────────────────────────────────────
 export { passwordRules } from "./utils/password"
 export type { PasswordRulesOptions } from "./utils/password"
+export { evalRoleCheck, hasRole } from "./utils/roleCheck"
 

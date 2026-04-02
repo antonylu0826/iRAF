@@ -53,6 +53,26 @@ export interface IModuleOptions {
   roles?: string[]
   /** 控制 Sidebar 模組可視性：只有具備指定角色的使用者才能看到此模組 */
   allowedRoles?: string[]
+
+  // ─── Lifecycle hooks ────────────────────────────────────────────────────────
+
+  /**
+   * Client 側初始化 hook。在 React render 前、initPlugins() 之後執行。
+   * 適合用於：登記 slot plugins、訂閱 EventBus、設定 client 端服務。
+   */
+  onInit?: () => void | Promise<void>
+
+  /**
+   * Server 側初始化 hook。在 remult 啟動後執行。
+   * 適合用於：初始化 WebSocket、排程任務、server 端服務設定。
+   */
+  onServerInit?: () => void | Promise<void>
+
+  /**
+   * 模組銷毀 hook。主要用於測試清理，或未來支援模組熱替換。
+   * 適合用於：取消 EventBus 訂閱、清除 timer 等。
+   */
+  onDestroy?: () => void
 }
 
 /** 已登記的模組定義（等同 IModuleOptions，由 defineModule 回傳） */

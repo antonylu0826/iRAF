@@ -599,6 +599,296 @@ ModuleRegistry.use(SalesModule, SystemModule)
 
 ---
 
+### Phase 8 — 架構完善 [ ]
+
+補齊框架的四個基礎設施，讓 iRAF 具備長期擴充能力。
+
+#### 現況
+
+| 設施 | 用途 | 現狀 |
+|---|---|---|
+| `ModuleRegistry` | 業務功能封裝 | ✅ 已有，缺生命週期 |
+| `PluginRegistry` | UI 元件替換 | ✅ 已有，缺 Shell 擴充點 |
+| `ServiceRegistry` | 非 UI 能力替換 | ❌ 不存在（auth 寫死） |
+| `EventBus` | 跨模組通訊 | ❌ 不存在 |
+
+---
+
+#### 8.1 ServiceRegistry — 非 UI 能力的可替換容器
+
+統一管理可替換的「服務」（與 PluginRegistry 管 UI 元件互補）。
+
+```ts
+// packages/core/src/registry/ServiceRegistry.ts
+class ServiceRegistry {
+  static register<T>(key: string, instance: T): void     // 登記（重複報錯）
+  static resolve<T>(key: string): T | undefined           // 取得
+  static require<T>(key: string): T                       // 取得（找不到拋錯）
+  static override<T>(key: string, instance: T): void      // 覆蓋（明確意圖，不報錯）
+  static clear(): void
+}
+```
+
+##### 內建服務合約
+
+**`IAuthProvider`** — 認證策略
+
+```ts
+interface IAuthProvider {
+  login(credentials: Record<string, any>): Promise<{ token: string; user: IAuthUser }>
+  getUser(req: any): Promise<IAuthUser | undefined>
+  loginComponent?: unknown   // 自訂登入頁（core 不依賴 React）
+}
+
+interface IAuthUser {
+  id: string
+  name: string
+  roles: string[]
+}
+```
+
+**`INotifier`** — UI 通知（toast）
+
+```ts
+interface INotifier {
+  success(message: string): void
+  error(message: string): void
+  info(message: string): void
+  warn(message: string): void
+}
+```
+
+##### 使用方式
+
+```ts
+// app bootstrap — 註冊
+ServiceRegistry.register("auth", new JwtAuthProvider({ secret: "..." }))
+
+// 框架內部 — 消費
+const auth = ServiceRegistry.require<IAuthProvider>("auth")
+const user = await auth.getUser(req)
+
+// 切換 SSO — 只換一行
+ServiceRegistry.register("auth", new OAuthProvider({ provider: "azure-ad" }))
+```
+
+##### 服務 key 命名
+
+| Key | 合約 | 說明 |
+|-----|------|------|
+| `auth` | `IAuthProvider` | 認證策略 |
+| `notifier` | `INotifier` | UI 通知 |
+| `storage` | （未來） | 檔案儲存 |
+| `logger` | （未來） | 日誌 |
+
+##### 任務清單
+
+- [x] `packages/core`：實作 `ServiceRegistry`（register / resolve / require / override / clear）
+- [x] `packages/core`：定義 `IAuthProvider` / `IAuthUser` / `INotifier` 介面
+- [x] `packages/core`：匯出 `ServiceRegistry` 與所有介面
+- [x] 重構 `app/src/server/auth.ts` → 抽出 `JwtAuthProvider` 實作 `IAuthProvider`
+- [x] 重構 `packages/react/AuthContext` → 從 `ServiceRegistry.require("auth")` 取得 provider
+- [x] 統一 `evalRoleCheck` / `hasRole` helper → 移入 `packages/core` 作為共用工具函式
+- [x] 測試：register / resolve / require / override / 重複報錯
+
+---
+
+#### 8.2 EventBus — 跨模組事件通訊
+
+```ts
+// packages/core/src/events/EventBus.ts
+type EventHandler<T = any> = (payload: T) => void | Promise<void>
+
+class EventBus {
+  static on<T>(event: string, handler: EventHandler<T>): () => void   // 訂閱，回傳取消函式
+  static once<T>(event: string, handler: EventHandler<T>): () => void  // 一次性訂閱
+  static emit<T>(event: string, payload: T): Promise<void>            // 發射（handler 平行執行）
+  static off(event: string, handler: EventHandler): void               // 取消訂閱
+  static clear(): void
+}
+```
+
+##### 內建事件
+
+| 事件 | Payload | 時機 |
+|------|---------|------|
+| `entity:saving` | `{ entityClass, item, isNew }` | 儲存前 |
+| `entity:saved` | `{ entityClass, item, isNew }` | 儲存後 |
+| `entity:deleting` | `{ entityClass, id }` | 刪除前 |
+| `entity:deleted` | `{ entityClass, id }` | 刪除後 |
+| `auth:login` | `{ user }` | 登入成功 |
+| `auth:logout` | `{}` | 登出 |
+
+##### 用途範例
+
+```ts
+// 模組 A — 發出事件
+await EventBus.emit("order:created", { orderId: "123" })
+
+// 模組 B — 訂閱事件
+EventBus.on("order:created", async ({ orderId }) => {
+  const notifier = ServiceRegistry.resolve<INotifier>("notifier")
+  notifier?.success(`訂單 ${orderId} 已建立`)
+})
+```
+
+##### 任務清單
+
+- [x] `packages/core`：實作 `EventBus`（on / once / emit / off / clear）
+- [x] `packages/core`：匯出 `EventBus` 與 `EventHandler` 型別
+- [x] `plugins/system`：DetailView 儲存前後 emit `entity:saving` / `entity:saved`
+- [x] `plugins/system`：ListView 刪除前後 emit `entity:deleting` / `entity:deleted`
+- [x] `packages/react`：AuthContext 登入/登出 emit `auth:login` / `auth:logout`
+- [x] 測試：on / once / emit / off / 多 handler 平行 / clear
+
+---
+
+#### 8.3 Shell Slot — UI 擴充點
+
+不改 `PluginRegistry` API，約定新的 category `"slot"`，Shell 元件掃描並渲染。
+
+##### Slot 命名規範
+
+格式：`{區域}:{名稱}`
+
+| 前綴 | 位置 | 說明 |
+|------|------|------|
+| `appbar:` | AppHeader 右側 | logout 按鈕左側 |
+| `sidebar-header:` | Sidebar 上方 | logo 區下方 |
+| `sidebar-footer:` | Sidebar 底部 | 導航列最下方 |
+| `list-toolbar:` | ListView 標題列 | 新增按鈕左側 |
+| `detail-header:` | DetailView 標題區 | 返回按鈕左側 |
+| `detail-toolbar:` | DetailView 工具列 | Action Bar 之後 |
+
+##### Slot Props
+
+```ts
+interface ISlotProps {
+  context?: Record<string, any>   // 上下文（如 detail slot 可收到 entityClass + item）
+}
+```
+
+##### 渲染元件
+
+```tsx
+// packages/react — 共用 Slot 渲染器
+function SlotArea({ prefix, context }: { prefix: string; context?: Record<string, any> }) {
+  const slots = PluginRegistry.getAll("slot").filter(p => p.name.startsWith(`${prefix}:`))
+  if (slots.length === 0) return null
+  return <>
+    {slots.map(slot => {
+      const Comp = slot.component as React.ComponentType<ISlotProps>
+      return <Comp key={slot.name} context={context} />
+    })}
+  </>
+}
+```
+
+##### 使用方式
+
+```ts
+// 模組自帶 slot plugin
+PluginRegistry.register("slot", {
+  name: "appbar:notifications",
+  caption: "通知鈴",
+  component: NotificationBell,
+})
+
+// Shell 元件渲染
+<SlotArea prefix="appbar" />
+```
+
+##### 任務清單
+
+- [x] `packages/react`：實作 `SlotArea` 元件
+- [x] `packages/react`：定義 `ISlotProps` 介面並匯出
+- [x] `packages/react`：`AppHeader` 加入 `<SlotArea prefix="appbar" />`
+- [x] `packages/react`：`Sidebar` 加入 `sidebar-header` / `sidebar-footer` 渲染
+- [x] `plugins/system`：`ListView` 加入 `<SlotArea prefix="list-toolbar" />`
+- [x] `plugins/system`：`DetailView` 加入 `detail-header` / `detail-toolbar` 渲染
+- [x] 測試：slot 登記後能在對應區域渲染
+
+---
+
+#### 8.4 Module Lifecycle — 模組生命週期
+
+`IModuleOptions` 新增生命週期 hook，`ModuleRegistry` 負責執行。
+
+```ts
+interface IModuleOptions {
+  // ...existing...
+  onInit?: () => void | Promise<void>          // client 側，React render 前
+  onServerInit?: () => void | Promise<void>    // server 側，remult 啟動後
+  onDestroy?: () => void                       // 清理（主要用於測試）
+}
+```
+
+##### 執行時機
+
+```
+Client:
+  1. ModuleRegistry.use(...)               ← 登記 entities / controllers
+  2. await ModuleRegistry.initAll()         ← 依序呼叫 mod.onInit()
+  3. initPlugins()                          ← 登記 UI plugins
+  4. React render
+
+Server:
+  1. remultExpress(...)                     ← Remult 啟動
+  2. await ModuleRegistry.serverInitAll()   ← 依序呼叫 mod.onServerInit()
+```
+
+##### 用途範例
+
+```ts
+export const NotificationModule = defineModule({
+  key: "notification",
+  caption: "通知",
+  onInit: () => {
+    PluginRegistry.register("slot", {
+      name: "appbar:notifications",
+      caption: "通知鈴",
+      component: NotificationBell,
+    })
+    EventBus.on("entity:saved", handleEntitySaved)
+  },
+  onServerInit: async () => {
+    // 初始化 WebSocket、排程任務等
+  },
+  onDestroy: () => {
+    EventBus.off("entity:saved", handleEntitySaved)
+  },
+})
+```
+
+##### 任務清單
+
+- [x] `packages/core`：`IModuleOptions` 新增 `onInit` / `onServerInit` / `onDestroy`
+- [x] `packages/core`：`ModuleRegistry` 新增 `initAll()` / `serverInitAll()` / `destroyAll()`
+- [x] `app/src/main.tsx`：bootstrap 順序調整為 `use() → initAll() → initPlugins() → render`
+- [x] `app/src/server/index.ts`：remult 啟動後呼叫 `ModuleRegistry.serverInitAll()`
+- [x] 測試：lifecycle hook 執行順序正確、async 支援
+
+---
+
+#### 8.5 實作順序
+
+```
+Step 1: ServiceRegistry + IAuthProvider + INotifier
+        → 建立非 UI 可替換基礎，重構 auth 硬編碼
+
+Step 2: EventBus
+        → 純工具類，無外部依賴
+        → DetailView / ListView 加 emit
+
+Step 3: Shell Slot + SlotArea
+        → Shell 元件加擴充點
+
+Step 4: Module Lifecycle
+        → onInit / onServerInit / onDestroy + bootstrap 順序調整
+```
+
+---
+
 ### Phase Final — 開發體驗 [ ]
 - [ ] `AGENTS.md` — 通用框架指引（任何 agent 讀了就能上手）
 - [ ] `CLAUDE.md` — Claude Code 專屬設定

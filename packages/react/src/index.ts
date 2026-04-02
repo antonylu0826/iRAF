@@ -43,4 +43,6 @@ export {
   SelectScrollUpButton,
   SelectScrollDownButton,
 } from "./components/ui/select"
+export { SlotArea } from "./components/SlotArea"
+export type { ISlotProps } from "./components/SlotArea"
 export { cn } from "./lib/utils"

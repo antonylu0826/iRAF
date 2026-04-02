@@ -3,6 +3,7 @@ import { NavLink } from "react-router"
 import { ModuleRegistry, EntityRegistry, type IMenuItem, type IModuleDef } from "@iraf/core"
 import * as LucideIcons from "lucide-react"
 import { Separator } from "./ui/separator"
+import { SlotArea } from "./SlotArea"
 import { cn } from "../lib/utils"
 import { useAuth } from "../context/AuthContext"
 
@@ -54,6 +55,8 @@ export function Sidebar({ title }: SidebarProps) {
         </div>
         <h1 className="text-lg font-bold tracking-tight truncate">{title}</h1>
       </div>
+      {/* sidebar-header slot */}
+      <SlotArea prefix="sidebar-header" />
       <nav className="flex-1 overflow-y-auto py-6">
         {modules.map((mod, modIndex) => {
           const menuItems = ModuleRegistry.getMenu(mod.key)
@@ -120,6 +123,8 @@ export function Sidebar({ title }: SidebarProps) {
           )
         })}
       </nav>
+      {/* sidebar-footer slot */}
+      <SlotArea prefix="sidebar-footer" />
     </aside>
   )
 }

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react"
 import { remult } from "remult"
+import { EventBus, EVENTS } from "@iraf/core"
 
 export interface AuthUser {
   id: string
@@ -67,11 +68,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!res.ok) throw new Error(data.message ?? "登入失敗")
     applyToken(data.token!)
     setUser(data.user!)
+    await EventBus.emit(EVENTS.AUTH_LOGIN, { user: data.user! })
   }, [])
 
   const logout = useCallback(() => {
     applyToken(null)
     setUser(null)
+    EventBus.emit(EVENTS.AUTH_LOGOUT, {})
   }, [])
 
   return (

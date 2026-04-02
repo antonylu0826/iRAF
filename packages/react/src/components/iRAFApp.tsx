@@ -1,6 +1,7 @@
 import React from "react"
 import { BrowserRouter, Routes, Route, Navigate } from "react-router"
-import { ModuleRegistry, EntityRegistry } from "@iraf/core"
+import { ModuleRegistry, EntityRegistry, ServiceRegistry, SERVICE_KEYS } from "@iraf/core"
+import type { IAuthProvider } from "@iraf/core"
 import { AuthProvider, useAuth } from "../context/AuthContext"
 import { AppShell } from "./AppShell"
 import { LoginPage } from "./LoginPage"
@@ -46,7 +47,9 @@ function AppRoutes({ title }: { title: string }) {
   }
 
   if (!user) {
-    return <LoginPage />
+    const authProvider = ServiceRegistry.resolve<IAuthProvider>(SERVICE_KEYS.AUTH)
+    const LoginComp = (authProvider?.loginComponent as React.ComponentType | undefined) ?? LoginPage
+    return <LoginComp />
   }
 
   return (

@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react"
 import { useNavigate } from "react-router"
 import { remult } from "remult"
-import { EntityRegistry, type RoleCheck, type IUserContext } from "@iraf/core"
+import { EntityRegistry, EventBus, EVENTS, evalRoleCheck } from "@iraf/core"
 import { Plus, Loader2, Pencil, Trash2 } from "lucide-react"
-import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, useAuth } from "@iraf/react"
+import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, useAuth, SlotArea } from "@iraf/react"
 
 interface ListViewProps {
   entityClass: new () => object
@@ -12,15 +12,6 @@ interface ListViewProps {
   basePath?: string
 }
 
-function evalRoleCheck(
-  check: RoleCheck | undefined,
-  user: IUserContext | null | undefined,
-  row?: any
-): boolean {
-  if (!check) return true
-  if (typeof check === "function") return check(user ?? undefined, row)
-  return check.some((r) => (user?.roles ?? []).includes(r))
-}
 
 export function ListView({ entityClass, basePath }: ListViewProps) {
   const navigate = useNavigate()
@@ -99,7 +90,9 @@ export function ListView({ entityClass, basePath }: ListViewProps) {
     if (!confirm("確定要刪除這筆資料嗎？")) return
     setDeletingId(id)
     try {
+      await EventBus.emit(EVENTS.ENTITY_DELETING, { entityClass, id })
       await remult.repo(entityClass as new () => object).delete(id)
+      await EventBus.emit(EVENTS.ENTITY_DELETED, { entityClass, id })
       setRows((prev) => prev.filter((r) => (r as any).id !== id))
     } catch (err: unknown) {
       setError((err as any)?.message ?? String(err))
@@ -114,12 +107,16 @@ export function ListView({ entityClass, basePath }: ListViewProps) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">{meta.caption}</h1>
-        {canCreate && (
-          <Button onClick={() => navigate(`${base}/new`)} size="sm">
-            <Plus className="h-4 w-4" />
-            新增
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {/* list-toolbar slot — 新增按鈕左側 */}
+          <SlotArea prefix="list-toolbar" context={{ entityClass, meta }} />
+          {canCreate && (
+            <Button onClick={() => navigate(`${base}/new`)} size="sm">
+              <Plus className="h-4 w-4" />
+              新增
+            </Button>
+          )}
+        </div>
       </div>
 
       {loading && (

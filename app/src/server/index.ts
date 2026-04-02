@@ -4,10 +4,14 @@ import express from "express"
 import { remultExpress } from "remult/remult-express"
 import { remult } from "remult"
 import bcrypt from "bcrypt"
-import { EntityRegistry } from "@iraf/core"
+import { EntityRegistry, ModuleRegistry, ServiceRegistry, SERVICE_KEYS } from "@iraf/core"
 import { AppUser } from "@iraf/module-system"
-import { getUser, createAuthRouter } from "./auth"
+import { JWT_SECRET, getUser, createAuthRouter } from "./auth"
+import { JwtAuthProvider } from "./JwtAuthProvider"
 import "../modules" // 觸發 ModuleRegistry.use(...)
+
+// ─── 登記服務 ──────────────────────────────────────────────────────────────────
+ServiceRegistry.register(SERVICE_KEYS.AUTH, new JwtAuthProvider({ secret: JWT_SECRET }))
 
 const app = express()
 app.use(express.json())
@@ -31,7 +35,7 @@ const api = remultExpress({
 })
 app.use(api)
 
-// Auth 路由（login / register / me）— 使用 api.withRemult 建立 remult context
+// Auth 路由（login / me）— 使用 api.withRemult 建立 remult context
 app.use(createAuthRouter(api.withRemult))
 
 app.get("/", (_req, res) => {
@@ -39,6 +43,8 @@ app.get("/", (_req, res) => {
 })
 
 const PORT = 3001
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
+  // 執行所有模組的 server 側初始化
+  await ModuleRegistry.serverInitAll()
   console.log(`iRAF Demo Server started on http://localhost:${PORT}`)
 })

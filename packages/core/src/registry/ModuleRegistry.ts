@@ -137,8 +137,40 @@ export class ModuleRegistry {
     return [...all]
   }
 
+  /**
+   * 執行所有模組的 client 側初始化（onInit）。
+   * 依 use() 的登記順序依序執行，支援 async。
+   * 應在 initPlugins() 之後、React render 之前呼叫。
+   */
+  static async initAll(): Promise<void> {
+    for (const mod of this._modules) {
+      if (mod.onInit) await mod.onInit()
+    }
+  }
+
+  /**
+   * 執行所有模組的 server 側初始化（onServerInit）。
+   * 應在 remultExpress 啟動後呼叫。
+   */
+  static async serverInitAll(): Promise<void> {
+    for (const mod of this._modules) {
+      if (mod.onServerInit) await mod.onServerInit()
+    }
+  }
+
+  /**
+   * 執行所有模組的銷毀 hook（onDestroy）。
+   * 主要用於測試清理或模組熱替換。
+   */
+  static destroyAll(): void {
+    for (const mod of this._modules) {
+      if (mod.onDestroy) mod.onDestroy()
+    }
+  }
+
   /** 清除所有登記（主要用於測試）。 */
   static clear(): void {
+    this.destroyAll()
     this._modules = []
     EntityRegistry.clear()
   }

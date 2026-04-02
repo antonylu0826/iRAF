@@ -165,4 +165,45 @@ describe("ModuleRegistry", () => {
     expect(SYSTEM_ROLES).toContain("admins")
     expect(SYSTEM_ROLES).toContain("users")
   })
+
+  // ─── Lifecycle (P8) ─────────────────────────────────────────────────────────
+
+  it("initAll() 依序執行 onInit", async () => {
+    const order: number[] = []
+    ModuleRegistry.use(defineModule({ key: "a", caption: "A", onInit: () => { order.push(1) } }))
+    ModuleRegistry.use(defineModule({ key: "b", caption: "B", onInit: async () => { order.push(2) } }))
+    await ModuleRegistry.initAll()
+    expect(order).toEqual([1, 2])
+  })
+
+  it("serverInitAll() 依序執行 onServerInit", async () => {
+    const order: number[] = []
+    ModuleRegistry.use(defineModule({ key: "a", caption: "A", onServerInit: async () => { order.push(1) } }))
+    ModuleRegistry.use(defineModule({ key: "b", caption: "B", onServerInit: () => { order.push(2) } }))
+    await ModuleRegistry.serverInitAll()
+    expect(order).toEqual([1, 2])
+  })
+
+  it("destroyAll() 執行 onDestroy", () => {
+    const destroyed: string[] = []
+    ModuleRegistry.use(defineModule({ key: "a", caption: "A", onDestroy: () => { destroyed.push("a") } }))
+    ModuleRegistry.use(defineModule({ key: "b", caption: "B", onDestroy: () => { destroyed.push("b") } }))
+    ModuleRegistry.destroyAll()
+    expect(destroyed).toEqual(["a", "b"])
+  })
+
+  it("clear() 呼叫 destroyAll() 後清除模組", () => {
+    const destroyed: string[] = []
+    ModuleRegistry.use(defineModule({ key: "a", caption: "A", onDestroy: () => { destroyed.push("a") } }))
+    ModuleRegistry.clear()
+    expect(destroyed).toEqual(["a"])
+    expect(ModuleRegistry.getAll()).toHaveLength(0)
+  })
+
+  it("沒有 lifecycle hook 的模組不拋錯", async () => {
+    ModuleRegistry.use(defineModule({ key: "plain", caption: "Plain" }))
+    await expect(ModuleRegistry.initAll()).resolves.toBeUndefined()
+    await expect(ModuleRegistry.serverInitAll()).resolves.toBeUndefined()
+    expect(() => ModuleRegistry.destroyAll()).not.toThrow()
+  })
 })

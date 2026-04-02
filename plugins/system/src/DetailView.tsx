@@ -1,27 +1,12 @@
 import React, { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router"
 import { remult } from "remult"
-import { EntityRegistry, type IActionMeta, type RoleCheck, type IUserContext } from "@iraf/core"
+import { EntityRegistry, EventBus, EVENTS, evalRoleCheck, hasRole, type IActionMeta } from "@iraf/core"
 import { ChevronLeft, Save, Loader2, X } from "lucide-react"
 import * as LucideIcons from "lucide-react"
-import { Button, Separator, useAuth, PluginRegistry } from "@iraf/react"
+import { Button, Separator, useAuth, PluginRegistry, SlotArea } from "@iraf/react"
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
-
-function evalRoleCheck(
-  check: RoleCheck | undefined,
-  user: IUserContext | null | undefined,
-  row?: any
-): boolean {
-  if (!check) return true
-  if (typeof check === "function") return check(user ?? undefined, row)
-  return check.some((r) => (user?.roles ?? []).includes(r))
-}
-
-function hasRole(userRoles: string[], required?: string[]): boolean {
-  if (!required || required.length === 0) return true
-  return required.some((r) => userRoles.includes(r))
-}
 
 function evalBool(
   value: boolean | ((entity: any) => boolean) | undefined,
@@ -103,12 +88,13 @@ export function DetailView({
     setGlobalError(null)
     try {
       const repo = remult.repo(entityClass)
+      await EventBus.emit(EVENTS.ENTITY_SAVING, { entityClass, item, isNew })
       if (isNew) {
         await repo.insert(item)
       } else {
         await repo.save(item)
       }
-      
+      await EventBus.emit(EVENTS.ENTITY_SAVED, { entityClass, item, isNew })
       navigate(base)
     } catch (e: any) {
       setGlobalError(e?.message ?? String(e))
@@ -171,16 +157,20 @@ export function DetailView({
               : `修改現有的 ${meta.caption} 詳細資訊`}
           </p>
         </div>
-        <Button variant="ghost" onClick={() => navigate(-1)} size="sm" className="h-8">
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          返回
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* detail-header slot — 返回按鈕左側 */}
+          <SlotArea prefix="detail-header" context={{ entityClass, item, isNew }} />
+          <Button variant="ghost" onClick={() => navigate(-1)} size="sm" className="h-8">
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            返回
+          </Button>
+        </div>
       </div>
 
       <Separator />
 
-      {/* Action Bar */}
-      {!isNew && actions.length > 0 && (
+      {/* Action Bar + detail-toolbar slot */}
+      {!isNew && (
         <div className="flex flex-wrap gap-2 px-1">
           {actions
             .filter(({ meta: am }) => hasRole(user?.roles ?? [], am.allowedRoles))
@@ -206,6 +196,8 @@ export function DetailView({
                 </Button>
               )
             })}
+          {/* detail-toolbar slot — Action Bar 之後 */}
+          <SlotArea prefix="detail-toolbar" context={{ entityClass, item, isNew }} />
         </div>
       )}
 
