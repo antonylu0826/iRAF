@@ -104,11 +104,12 @@ export function DetailView({
     try {
       const repo = remult.repo(entityClass)
       if (isNew) {
-        const saved = await repo.insert(item)
-        navigate(`${base}/${(saved as any).id}`, { replace: true })
+        await repo.insert(item)
       } else {
         await repo.save(item)
       }
+      
+      navigate(base)
     } catch (e) {
       setGlobalError(String(e))
     } finally {
