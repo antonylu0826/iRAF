@@ -1,0 +1,20 @@
+# iRAF Cursor Rules
+
+Read AGENTS.md at the start of every session for full framework reference.
+Read CLAUDE.md for build commands and common workflows.
+
+## Non-negotiable rules
+
+- Every entity MUST extend BaseObject and use @iEntity + @iField decorators
+- Entity keys: kebab-case plural (e.g. "order-lines")
+- Module keys: kebab-case (e.g. "sales")
+- Build order when making changes: core → react → plugin-system → modules → app
+- Bootstrap order in main.tsx: ModuleRegistry.initAll() → initPlugins() → React render
+- @iAction routes are /api/{ControllerClassName}/{methodName} — never use entity key
+
+## Reference files
+
+- Full entity example: modules/sample/src/entities/FeatureGallery.ts
+- Master-Detail example: modules/sample/src/entities/MasterItem.ts
+- Module definition: modules/sample/src/index.ts
+- Field types reference: packages/core/src/types/metadata.ts
