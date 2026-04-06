@@ -944,15 +944,89 @@ Step 4: Module Lifecycle
 - [x] 前端統一以 `t` 包裝系統 UI 文案
 - [x] 後端錯誤訊息採用 code / key，由前端翻譯（或 Accept-Language 傳遞）
 
+
 ---
 
-### Phase Final — 開發體驗 [ ]
-- [ ] `AGENTS.md` — 通用框架指引（任何 agent 讀了就能上手）
-- [ ] `CLAUDE.md` — Claude Code 專屬設定
-- [ ] `GEMINI.md` / `.cursorrules` — 其他工具的輕量版引用文件
-- [ ] `packages/mcp/` — iRAF MCP server（scaffold-module / scaffold-entity / get-example / list-modules）
-- [-] CLI 工具（有 AI agent 後價值有限）
-- [-] 完整使用文件庫（優先順序不高）
+### Phase 11 — iRAF MCP Server [ ]
+
+#### 背景與目標
+
+iRAF 作為「路線 B」ERP 架構的 CRUD 核心層，需要讓 AI Agent 能透過標準介面操作業務資料。
+MCP（Model Context Protocol）是最自然的橋樑，讓 Claude Desktop、Gemini、Cursor 等工具
+都能直接查詢 / 寫入 iRAF 資料，並觸發業務動作。
+
+**架構定位：**
+```
+AI Agent (Claude / Gemini / Codex)
+        ↓ 自然語言
+    MCP Server  ←→  iRAF API (Remult REST)
+        ↓
+  n8n / Temporal     ← 工作流（外部）
+  Metabase           ← 報表（外部）
+```
+
+**工具清單（完成後）：**
+
+| Tool | 類型 | 說明 |
+|---|---|---|
+| `list_entities` | 運營 | 回傳所有 entity 的 key / caption / fields 描述 |
+| `query_records` | 運營 | 查詢資料（支援 where / orderBy / limit） |
+| `get_record` | 運營 | 以 id 取得單筆記錄 |
+| `create_record` | 運營 | 新增記錄 |
+| `update_record` | 運營 | 更新記錄 |
+| `delete_record` | 運營 | 刪除記錄 |
+| `call_action` | 運營 | 呼叫 `@iAction`（如審批、確認） |
+| `scaffold_entity` | 開發 | 生成 entity 檔案內容（回傳 code） |
+| `scaffold_module` | 開發 | 生成完整模組骨架 |
+| `get_example` | 開發 | 取得指定 entity source 作為 AI 範本 |
+
+---
+
+#### 11.1 套件建立（其他一切的前提）
+
+- [x] 建立 `packages/mcp/` 套件（`@iraf/mcp`）
+- [x] `package.json`：`name: "@iraf/mcp"`，依賴 `@modelcontextprotocol/sdk`
+- [x] `tsup.config.ts`：build to `dist/`，`bin: { "iraf-mcp": "dist/index.js" }`
+- [x] 加入 workspace（npm workspaces，`packages/*` 已涵蓋）
+- [x] MCP server 進入點 `src/index.ts`：支援 stdio（`--stdio` 或 `MCP_TRANSPORT=stdio`）和 HTTP/SSE（預設）
+- [x] 認證：`src/auth.ts` 支援靜態 `IRAF_API_TOKEN` 或帳密自動登入（`IRAF_USERNAME` + `IRAF_PASSWORD`）
+
+#### 11.2 後端 Metadata API（`list_entities` 的依賴）
+
+MCP 需要後端提供 entity schema，讓 AI 知道有哪些欄位可以操作：
+
+- [x] 新增 `app/src/server/metaRouter.ts`，`GET /api/iraf/meta/entities` — 回傳所有 entity meta
+- [x] 新增 `GET /api/iraf/meta/entities/:key` — 單一 entity 完整 field metadata
+- [x] 在 `app/src/server/index.ts` 掛載 meta router
+
+#### 11.3 讀取工具（驗證整體架構的最小可測試單元）
+
+- [x] 實作 `list_entities` — 呼叫 `/api/iraf/meta/entities`，格式化為 AI 可讀描述
+- [x] 實作 `get_record` — `GET /api/<key>/:id`
+- [x] 實作 `query_records` — `GET /api/<key>` 支援 `where` / `orderBy` / `limit` / `page` 參數
+- [x] 認證：所有請求注入 `Authorization: Bearer <token>` header，401 時自動重新登入
+
+> 完成後即可用 Claude Desktop 接上測試，確認整體流程正確。
+
+#### 11.4 寫入工具
+
+- [x] 實作 `create_record` — `POST /api/<key>`
+- [x] 實作 `update_record` — `PUT /api/<key>/:id`
+- [x] 實作 `delete_record` — `DELETE /api/<key>/:id`
+- [x] 實作 `call_action` — `POST /api/<ControllerClassName>/<methodName>`（body: `[id]`）
+- [x] Meta API 補上 `actions[]`（含 `controllerClass`、`methodName`）供 AI 查詢路由
+
+#### 11.5 開發工具（次要，等運營工具穩定）
+
+- [x] 實作 `get_example` — 讀取指定 entity source 檔（需 `IRAF_WORKSPACE` env var）
+- [x] 實作 `scaffold_entity` — 依 name / fields 描述產生 entity TypeScript 程式碼（純文字回傳，不寫檔）
+- [x] 實作 `scaffold_module` — 依 key / entities 描述產生模組骨架（純文字回傳）
+
+#### 11.6 設定與文件
+
+- [x] `packages/mcp/README.md` — 安裝、環境變數、可用工具列表
+- [x] Claude Desktop `claude_desktop_config.json` 範例（已寫入實際設定檔）
+- [x] 在 `AGENTS.md` 補上 MCP 使用方式
 
 ## AI Agent 開發指引（框架設計考量）
 
@@ -962,6 +1036,16 @@ Step 4: Module Lifecycle
 2. **明確的命名慣例** — 檔案名稱、class 名稱、路由命名都有規則
 3. **`AGENTS.md`** — 放在專案根目錄，記錄框架慣例，讓 agent 在每次對話開始時載入
 4. **Phase-based 開發** — 每個 Phase 是獨立可交付的單元，適合 agent 逐步執行
+
+---
+
+### Phase Final — 開發體驗 [ ]
+- [x] `AGENTS.md` — 通用框架指引（任何 agent 讀了就能上手）
+- [ ] `CLAUDE.md` — Claude Code 專屬設定
+- [ ] `GEMINI.md` / `.cursorrules` — 其他工具的輕量版引用文件
+- [ ] `packages/mcp/` — iRAF MCP server（見 Phase 11）
+- [-] CLI 工具（有 AI agent 後價值有限）
+- [-] 完整使用文件庫（優先順序不高）
 
 ---
 

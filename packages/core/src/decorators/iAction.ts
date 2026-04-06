@@ -26,8 +26,12 @@ export function iAction(options: Omit<IActionMeta, "methodName">) {
     descriptor: PropertyDescriptor
   ): PropertyDescriptor | void => {
     // 1. Apply Remult BackendMethod so this static method becomes an API endpoint
+    //    apiPrefix = class name so routes are /api/{ClassName}/{methodName}
+    //    paramTypes explicitly set because esbuild doesn't emit design:paramtypes
     BackendMethod({
       allowed: (options.allowedRoles ?? true) as any,
+      apiPrefix: (target as any).name,
+      paramTypes: () => [String],
     })(target, propertyKey, descriptor)
 
     // 2. Store action metadata on the class (constructor)

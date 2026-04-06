@@ -8,6 +8,7 @@ import { EntityRegistry, ModuleRegistry, ServiceRegistry, SERVICE_KEYS, type IPa
 import { AppUser } from "@iraf/module-system"
 import { JWT_SECRET, getUser, createAuthRouter } from "./auth"
 import { JwtAuthProvider } from "./JwtAuthProvider"
+import { createMetaRouter } from "./metaRouter"
 import "../modules" // Trigger ModuleRegistry.use(...)
 
 // ─── Register services ────────────────────────────────────────────────────────
@@ -41,6 +42,9 @@ app.use(api)
 
 // Auth routes (login / me) — use api.withRemult for remult context
 app.use(createAuthRouter(api.withRemult))
+
+// iRAF metadata API (for MCP and tooling)
+app.use(createMetaRouter())
 
 app.get("/", (_req, res) => {
   res.json({ status: "iRAF Demo Server running", version: "0.1.0" })
