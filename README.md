@@ -129,6 +129,38 @@ Claude Desktop config: see `packages/mcp/README.md`
 
 ---
 
+## Multi-Agent Orchestration (Docker Agent)
+
+iRAF includes a pre-configured [Docker Agent](https://docs.docker.com/ai/gordon/agents/) team that can autonomously build and deploy new modules.
+
+**Prerequisites:** Docker Desktop with the Agent feature enabled.
+
+```bash
+# Start the iRAF agent team (run from iRAF root)
+docker agent run agents/iraf-team.yaml
+
+# With a specific task
+docker agent run agents/iraf-team.yaml "建立一個產品管理系統，包含名稱、單價、庫存欄位"
+```
+
+**Agent roles:**
+
+| Agent | Role |
+|---|---|
+| `root` | Orchestrator — coordinates tasks between sub-agents |
+| `iraf-agent` | Operates data via MCP (query, scaffold, write files) |
+| `builder-agent` | Runs `npm build` + `docker restart iraf-server` |
+
+**Typical auto-build flow:**
+1. `root` receives user request
+2. `iraf-agent` scaffolds entity code → writes files via `write_file` MCP tool
+3. `builder-agent` builds the new module and restarts the server
+4. `iraf-agent` verifies with `list_entities`
+
+> Note: `IRAF_WORKSPACE` in `agents/iraf-team.yaml` must match the absolute path of this repo on your machine.
+
+---
+
 ## For AI Agents
 
 Read **[AGENTS.md](AGENTS.md)** at the start of every session — it contains repo layout, key concepts, naming conventions, common workflows, and anti-patterns.

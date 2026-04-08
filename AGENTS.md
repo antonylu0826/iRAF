@@ -132,7 +132,14 @@ Every entity **must** extend `BaseObject` to get audit fields and correct `@iEnt
 
 1. Create `modules/<name>/src/index.ts` with `defineModule({ key, caption, entities, menu, i18n })`
 2. Add `package.json` with `name: "@iraf/module-<name>"` and `tsup.config.ts` (copy from `modules/sample/`)
-3. Import and register in `app/src/modules/index.ts`: `ModuleRegistry.use(MyModule)`
+3. Import and register in `app/src/modules/index.ts`: append to `ModuleRegistry.use(...)` call  
+   **⚠️ CRITICAL: Never rewrite this file from scratch. Always append to the existing `ModuleRegistry.use(...)` call.**  
+   **Removing existing modules from `use()` will break the entire app.**  
+   Correct pattern:
+   ```ts
+   ModuleRegistry.use(SystemModule, SampleModule, NewModule)
+   export { SystemModule, SampleModule, NewModule }
+   ```
 4. Add to `app/package.json` dependencies and rebuild
 
 ## How to Add a Control Plugin

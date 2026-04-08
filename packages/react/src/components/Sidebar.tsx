@@ -63,6 +63,7 @@ export function Sidebar({ title, onNavigate }: SidebarProps) {
       <nav className="flex-1 overflow-y-auto py-6">
         {modules.map((mod, modIndex) => {
           const menuItems = ModuleRegistry.getMenu(mod.key)
+          if (menuItems.length === 0) return null
 
           return (
             <div key={mod.key} className="mb-6">

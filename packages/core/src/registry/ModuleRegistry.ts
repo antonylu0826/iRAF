@@ -102,11 +102,11 @@ export class ModuleRegistry {
     const mod = this.get(key)
     if (!mod) return []
 
-    if (mod.menu && mod.menu.length > 0) {
+    if (mod.menu !== undefined) {
       return [...mod.menu].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
     }
 
-    // Auto-generate from entities
+    // Auto-generate from entities (only when menu is not explicitly set)
     return (mod.entities ?? []).map((entity) => ({
       type: "entity" as const,
       entity,
