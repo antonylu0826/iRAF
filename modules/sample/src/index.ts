@@ -70,8 +70,6 @@ export const SampleModule = defineModule({
       "Reset Secret": "重設秘密",
     },
   },
-  menu: [
-    { entity: FeatureGallery, caption: "Feature Gallery", icon: "Component", order: 1 },
-    { entity: MasterItem,     caption: "Master Items",   icon: "ListOrdered", order: 2 },
-  ],
+  // No menu entries — sample module is for agent reference only (get_example)
+  menu: [],
 })

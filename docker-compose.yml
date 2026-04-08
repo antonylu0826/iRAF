@@ -17,8 +17,21 @@ services:
       timeout: 5s
       retries: 10
 
+  iraf-frontend:
+    build:
+      context: .
+      target: frontend
+    container_name: iraf-frontend
+    restart: unless-stopped
+    depends_on:
+      - iraf-server
+    ports:
+      - "80:80"
+
   iraf-server:
-    build: .
+    build:
+      context: .
+      target: server
     container_name: iraf-server
     restart: unless-stopped
     depends_on:
@@ -26,12 +39,6 @@ services:
         condition: service_healthy
     ports:
       - "3001:3001"
-    volumes:
-      # Mount full source so rebuilt dist files are available immediately
-      - .:/app
-      # Preserve container's node_modules (don't override with host's)
-      - /app/node_modules
-      - /app/app/node_modules
     environment:
       DATABASE_URL: postgres://iraf:iraf_password@postgres:5432/iraf
       IRAF_JWT_SECRET: ${IRAF_JWT_SECRET:-iraf-dev-secret-change-in-production}

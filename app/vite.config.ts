@@ -22,6 +22,8 @@ export default defineConfig({
     },
   },
   build: {
+    // VITE_API_URL allows overriding the API base in production builds.
+    // When empty, remult defaults to same-origin (nginx handles the proxy).
     rollupOptions: {
       output: {
         manualChunks(id) {
