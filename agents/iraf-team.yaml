@@ -12,8 +12,8 @@ agents:
       Typical workflow for building a new module:
       1. Ask iraf-agent to get_example for reference
       2. Ask iraf-agent to scaffold_entity / scaffold_module → get code as text
-      3. Tell the user to save the code to the correct file paths
-      4. Ask builder-agent to build the module
+      3. Ask iraf-agent to write_file for each generated file
+      4. Ask builder-agent to build the module and restart server
       5. Ask iraf-agent to list_entities to verify the new entity appears
 
       For data operations (query, create, update, delete, call_action):
@@ -30,12 +30,13 @@ agents:
 
       Use list_entities first to understand what data is available.
       Use get_example before scaffolding to follow exact conventions.
-      scaffold_entity and scaffold_module return code as text — do NOT write files yourself.
+      After scaffold_entity / scaffold_module, use write_file to save each file.
+      File paths must be relative to workspace root, e.g. modules/products/src/entities/Product.ts
     toolsets:
       - type: mcp
         command: node
         args:
-          - C:\Users\Anthony.MAXECHO\Desktop\iRAF\packages\mcp\dist\index.js
+          - packages/mcp/dist/index.js
           - --stdio
         env:
           IRAF_BASE_URL: http://localhost:3001
@@ -48,8 +49,6 @@ agents:
     description: Builds iRAF modules and restarts the Docker server
     instruction: |
       You are the iRAF builder agent. You build modules and restart the server.
-
-      Working directory: C:\Users\Anthony.MAXECHO\Desktop\iRAF
 
       Build order (always follow this sequence):
         1. npm run build --workspace=packages/core    (only if core changed)

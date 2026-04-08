@@ -1,7 +1,7 @@
 // server.ts — MCP server with iRAF operation tools
 
-import { readdir, readFile } from "fs/promises"
-import { join } from "path"
+import { readdir, readFile, writeFile, mkdir } from "fs/promises"
+import { join, dirname, resolve, normalize } from "path"
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { z } from "zod"
 import { apiFetch } from "./client.js"
@@ -141,6 +141,45 @@ export function createMcpServer(): McpServer {
       })
       const text = result != null ? JSON.stringify(result, null, 2) : `Action '${methodName}' completed.`
       return { content: [{ type: "text" as const, text }] }
+    }
+  )
+
+  // ─── write_file ───────────────────────────────────────────────────────────────
+  server.tool(
+    "write_file",
+    "Write content to a file inside the iRAF workspace. Only allowed under modules/ and app/ directories. Creates parent directories automatically. Requires IRAF_WORKSPACE env var.",
+    {
+      path: z
+        .string()
+        .describe("Relative path from workspace root, e.g. 'modules/products/src/entities/Product.ts'"),
+      content: z.string().describe("Full file content to write"),
+    },
+    async ({ path: relPath, content }) => {
+      const root = process.env.IRAF_WORKSPACE
+      if (!root) {
+        return { content: [{ type: "text" as const, text: "Error: IRAF_WORKSPACE is not set." }] }
+      }
+
+      // Security: only allow writing under modules/ and app/
+      const absPath = resolve(join(root, relPath))
+      const normalized = normalize(absPath)
+      const allowedRoots = [
+        normalize(join(root, "modules")),
+        normalize(join(root, "app")),
+      ]
+      const allowed = allowedRoots.some((r) => normalized.startsWith(r))
+      if (!allowed) {
+        return {
+          content: [{
+            type: "text" as const,
+            text: `Error: write_file only allows paths under modules/ or app/. Got: ${relPath}`,
+          }],
+        }
+      }
+
+      await mkdir(dirname(absPath), { recursive: true })
+      await writeFile(absPath, content, "utf-8")
+      return { content: [{ type: "text" as const, text: `Written: ${relPath}` }] }
     }
   )
 
