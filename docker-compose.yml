@@ -1,0 +1,47 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: iraf-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: iraf
+      POSTGRES_USER: iraf
+      POSTGRES_PASSWORD: iraf_password
+    volumes:
+      - iraf-pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U iraf"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  iraf-server:
+    build: .
+    container_name: iraf-server
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3001:3001"
+    volumes:
+      # Mount full source so rebuilt dist files are available immediately
+      - .:/app
+      # Preserve container's node_modules (don't override with host's)
+      - /app/node_modules
+      - /app/app/node_modules
+    environment:
+      DATABASE_URL: postgres://iraf:iraf_password@postgres:5432/iraf
+      IRAF_JWT_SECRET: ${IRAF_JWT_SECRET:-iraf-dev-secret-change-in-production}
+      IRAF_ADMIN_USERNAME: ${IRAF_ADMIN_USERNAME:-admin}
+      IRAF_ADMIN_PASSWORD: ${IRAF_ADMIN_PASSWORD:-admin123}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3001/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  iraf-pgdata:

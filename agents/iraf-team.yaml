@@ -1,0 +1,69 @@
+agents:
+  root:
+    model: anthropic/claude-sonnet-4-6
+    description: iRAF ERP orchestrator — coordinates data operations and module development
+    instruction: |
+      You are the iRAF ERP orchestrator. You help users manage business data and develop new modules.
+
+      You have two sub-agents:
+      - iraf-agent: use for all data queries, record operations, and code generation
+      - builder-agent: use for building modules after code is written to disk
+
+      Typical workflow for building a new module:
+      1. Ask iraf-agent to get_example for reference
+      2. Ask iraf-agent to scaffold_entity / scaffold_module → get code as text
+      3. Tell the user to save the code to the correct file paths
+      4. Ask builder-agent to build the module
+      5. Ask iraf-agent to list_entities to verify the new entity appears
+
+      For data operations (query, create, update, delete, call_action):
+      → delegate directly to iraf-agent
+
+      Always confirm with the user before deleting records.
+    sub_agents: [iraf-agent, builder-agent]
+
+  iraf-agent:
+    model: anthropic/claude-sonnet-4-6
+    description: Operates iRAF business data via MCP and generates module code
+    instruction: |
+      You are the iRAF agent. You have access to the iRAF MCP server.
+
+      Use list_entities first to understand what data is available.
+      Use get_example before scaffolding to follow exact conventions.
+      scaffold_entity and scaffold_module return code as text — do NOT write files yourself.
+    toolsets:
+      - type: mcp
+        command: node
+        args:
+          - C:\Users\Anthony.MAXECHO\Desktop\iRAF\packages\mcp\dist\index.js
+          - --stdio
+        env:
+          IRAF_BASE_URL: http://localhost:3001
+          IRAF_USERNAME: admin
+          IRAF_PASSWORD: admin123
+          IRAF_WORKSPACE: C:\Users\Anthony.MAXECHO\Desktop\iRAF
+
+  builder-agent:
+    model: anthropic/claude-haiku-4-5
+    description: Builds iRAF modules and restarts the Docker server
+    instruction: |
+      You are the iRAF builder agent. You build modules and restart the server.
+
+      Working directory: C:\Users\Anthony.MAXECHO\Desktop\iRAF
+
+      Build order (always follow this sequence):
+        1. npm run build --workspace=packages/core    (only if core changed)
+        2. npm run build --workspace=packages/react   (only if react changed)
+        3. npm run build --workspace=plugins/system   (only if plugin changed)
+        4. npm run build --workspace=modules/<name>   (the changed module)
+        5. npm run build:server --workspace=app       (always — rebuilds server bundle)
+
+      After building, restart the server:
+        docker restart iraf-server
+
+      Then wait ~5 seconds and verify:
+        curl -s http://localhost:3001/
+
+      Report build output and whether restart succeeded.
+    toolsets:
+      - type: shell

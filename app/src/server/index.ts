@@ -11,6 +11,18 @@ import { JwtAuthProvider } from "./JwtAuthProvider"
 import { createMetaRouter } from "./metaRouter"
 import "../modules" // Trigger ModuleRegistry.use(...)
 
+// ─── DataProvider ─────────────────────────────────────────────────────────────
+async function createDataProvider() {
+  if (process.env.DATABASE_URL) {
+    const { createPostgresDataProvider } = await import("remult/postgres")
+    console.log("[iRAF] Using PostgreSQL data provider")
+    return createPostgresDataProvider({ connectionString: process.env.DATABASE_URL })
+  }
+  // Default: JSON files (development only)
+  console.log("[iRAF] Using JSON file data provider (dev)")
+  return undefined
+}
+
 // ─── Register services ────────────────────────────────────────────────────────
 ServiceRegistry.register(SERVICE_KEYS.AUTH, new JwtAuthProvider({ secret: JWT_SECRET }))
 ServiceRegistry.register<IPasswordHasher>(SERVICE_KEYS.PASSWORD_HASHER, {
@@ -22,9 +34,11 @@ const app = express()
 app.use(express.json())
 
 // remultExpress must run first to establish remult context (auth needs remult.repo()).
+const dataProvider = await createDataProvider() // eslint-disable-line
 const api = remultExpress({
   entities: EntityRegistry.getAll() as any[],
   controllers: EntityRegistry.getAllControllers() as any[],
+  dataProvider,
   getUser,
   initApi: async () => {
     const repo = remult.repo(AppUser)
