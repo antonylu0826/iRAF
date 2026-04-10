@@ -23,6 +23,7 @@ function extractFieldMeta(options: IFieldOptions): IFieldMeta {
   if (options.ref !== undefined) meta.ref = options.ref
   if (options.refLabel !== undefined) meta.refLabel = options.refLabel
   if (options.refThreshold !== undefined) meta.refThreshold = options.refThreshold
+  if (options.progressColor !== undefined) meta.progressColor = options.progressColor
   return meta
 }
 
@@ -145,6 +146,23 @@ export const iField = {
         ...extractFieldMeta(rest as IFieldOptions),
         _type: "collection",
         collection: { entity, foreignKey },
+      })
+    }
+  },
+
+  /**
+   * Progress Bar (read-only visualization of numeric value 0-100).
+   */
+  progress(options: IFieldOptions = {}): PropertyDecorator {
+    return (target: object, propertyKey: string | symbol) => {
+      Fields.number({
+        caption: options.caption,
+        validate: buildRemultValidators(options),
+      })(target, propertyKey as string)
+      storeFieldMeta(target, propertyKey, {
+        ...extractFieldMeta(options),
+        _type: "number",
+        control: "progress",
       })
     }
   },

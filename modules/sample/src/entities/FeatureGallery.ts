@@ -36,6 +36,14 @@ export class FeatureGallery extends BaseObject {
   })
   description = ""
 
+  @iField.progress({
+    caption: "Task Progress",
+    group: "General Info",
+    order: 2.5,
+    progressColor: "bg-green-500",
+  })
+  taskProgress = 65
+
   @iField.string({
     caption: "Category",
     group: "General Info",

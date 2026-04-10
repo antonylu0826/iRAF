@@ -11,6 +11,7 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
     resolve(__dirname, "../packages/react/src/**/*.{js,ts,jsx,tsx}"),
     resolve(__dirname, "../plugins/system/src/**/*.{js,ts,jsx,tsx}"),
+    resolve(__dirname, "../modules/*/src/**/*.{js,ts,jsx,tsx}"),
   ],
   theme: {
     extend: {

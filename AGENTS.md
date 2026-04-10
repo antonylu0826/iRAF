@@ -58,7 +58,7 @@ Register in `app/src/modules/index.ts` via `ModuleRegistry.use(MyModule)`.
 ### 3. PluginRegistry — controls and slots
 UI controls are plugins keyed by name. DetailView and SubGrid resolve controls at runtime.
 
-- **Controls** — input components: `"string"`, `"number"`, `"date"`, `"boolean"`, `"textarea"`, `"select"`, `"lookup"`, `"password"`, `"roles"`, `"subgrid"`
+- **Controls** — input components: `"string"`, `"number"`, `"date"`, `"boolean"`, `"textarea"`, `"select"`, `"lookup"`, `"password"`, `"roles"`, `"subgrid"`, `"progress"`
 - **Slots** — injection points: `"detail-header"`, `"detail-toolbar"`, `"sidebar-bottom"`, `"sidebar-top"`
 - **List views** — `"list"` (default ListView)
 

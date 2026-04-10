@@ -3,7 +3,7 @@ import { useNavigate } from "react-router"
 import { remult } from "remult"
 import { EntityRegistry, EventBus, EVENTS, evalRoleCheck, ModuleRegistry } from "@iraf/core"
 import { Plus, Loader2, Pencil, Trash2 } from "lucide-react"
-import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, useAuth, SlotArea, useI18n, translateError } from "@iraf/react"
+import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, useAuth, SlotArea, useI18n, translateError, cn } from "@iraf/react"
 import { prefetchLabels } from "./utils/refLabelCache"
 
 interface ListViewProps {
@@ -158,8 +158,32 @@ export function ListView({ entityClass, basePath }: ListViewProps) {
                   >
                     {columns.map(([fieldKey, fm]) => {
                       const raw = (row as any)[fieldKey]
-                      let cell: string
-                      if (fm._type === "boolean") {
+                      let cell: React.ReactNode
+
+                      if (fm.control === "progress") {
+                        const percent = Math.min(100, Math.max(0, Number(raw) || 0))
+                        const color = fm.progressColor || "bg-primary"
+                        const isTailwind = color.startsWith("bg-") || color.startsWith("text-")
+                        cell = (
+                          <div className="flex items-center gap-2 min-w-[100px] group">
+                            <div className="flex-1 h-1.5 rounded-full bg-muted/30 overflow-hidden">
+                              <div
+                                className={cn(
+                                  "h-full transition-all duration-700",
+                                  isTailwind ? color : "bg-primary"
+                                )}
+                                style={{
+                                  width: `${percent}%`,
+                                  ...(!isTailwind ? { backgroundColor: color } : {})
+                                }}
+                              />
+                            </div>
+                            <span className="text-[10px] tabular-nums text-muted-foreground w-6 text-right group-hover:text-foreground transition-colors">
+                              {percent}
+                            </span>
+                          </div>
+                        )
+                      } else if (fm._type === "boolean") {
                         cell = raw ? "✓" : "—"
                       } else if (fm._type === "date" && raw) {
                         cell = new Date(raw).toLocaleDateString(i18n.language)

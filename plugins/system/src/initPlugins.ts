@@ -21,6 +21,7 @@ import { RolesInput } from "./controls/RolesInput"
 import { SelectInput } from "./controls/SelectInput"
 import { LookupInput } from "./controls/LookupInput"
 import { SubGrid } from "./controls/SubGrid"
+import { ProgressBar } from "./controls/ProgressBar"
 import { ThemeToggle } from "./slots/ThemeToggle"
 import { LanguageToggle } from "./slots/LanguageToggle"
 
@@ -57,6 +58,7 @@ export function initPlugins(): void {
   PluginRegistry.register("control", { name: "select",   caption: "Select",        component: SelectInput   })
   PluginRegistry.register("control", { name: "lookup",   caption: "Lookup",        component: LookupInput   })
   PluginRegistry.register("control", { name: "subgrid",  caption: "Subgrid",       component: SubGrid       })
+  PluginRegistry.register("control", { name: "progress", caption: "Progress",      component: ProgressBar   })
 
   // ─── slots ─────────────────────────────────────────────────────────────────
   PluginRegistry.register("slot", {

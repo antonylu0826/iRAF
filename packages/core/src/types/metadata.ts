@@ -60,6 +60,8 @@ export interface IFieldMeta {
   control?: string
   /** Input placeholder text */
   placeholder?: string
+  /** Progress bar fill color (for "progress" control) */
+  progressColor?: string
   /** Only users with these roles can write this field; otherwise readOnly. */
   writeRoles?: string[]
   /** iRAF internal: base field type ("string" | "number" | "date" | "boolean" | "json") for default control resolution. */
