@@ -5,7 +5,19 @@ import { remult } from "remult"
 import { ServiceRegistry, SERVICE_KEYS } from "@iraf/core"
 import type { IAuthProvider } from "@iraf/core"
 
-export const JWT_SECRET = process.env.IRAF_JWT_SECRET ?? "iraf-dev-secret-change-in-production"
+export const JWT_SECRET = process.env.IRAF_JWT_SECRET
+
+if (!JWT_SECRET && process.env.NODE_ENV === "production") {
+  console.error("CRITICAL ERROR: IRAF_JWT_SECRET is not defined in production environment.")
+  process.exit(1)
+}
+
+const DEFAULT_DEV_SECRET = "iraf-dev-secret-unsafe-do-not-use-in-production"
+export const ACTUAL_SECRET = JWT_SECRET ?? DEFAULT_DEV_SECRET
+
+if (!JWT_SECRET) {
+  console.warn("WARNING: IRAF_JWT_SECRET is not defined. Using unsafe development secret.")
+}
 
 /**
  * Remult getUser — parses user from Authorization header.

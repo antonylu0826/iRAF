@@ -6,8 +6,9 @@ import { remult } from "remult"
 import bcrypt from "bcrypt"
 import { EntityRegistry, ModuleRegistry, ServiceRegistry, SERVICE_KEYS, type IPasswordHasher } from "@iraf/core"
 import { AppUser } from "@iraf/module-system"
-import { JWT_SECRET, getUser, createAuthRouter } from "./auth"
+import { ACTUAL_SECRET, getUser, createAuthRouter } from "./auth"
 import { JwtAuthProvider } from "./JwtAuthProvider"
+import helmet from "helmet"
 import { createMetaRouter } from "./metaRouter"
 import "../modules" // Trigger ModuleRegistry.use(...)
 
@@ -24,13 +25,14 @@ async function createDataProvider() {
 }
 
 // ─── Register services ────────────────────────────────────────────────────────
-ServiceRegistry.register(SERVICE_KEYS.AUTH, new JwtAuthProvider({ secret: JWT_SECRET }))
+ServiceRegistry.register(SERVICE_KEYS.AUTH, new JwtAuthProvider({ secret: ACTUAL_SECRET }))
 ServiceRegistry.register<IPasswordHasher>(SERVICE_KEYS.PASSWORD_HASHER, {
   hash: (password: string) => bcrypt.hash(password, 10),
   compare: (password: string, hash: string) => bcrypt.compare(password, hash),
 })
 
 const app = express()
+app.use(helmet())
 app.use(express.json())
 
 // remultExpress must run first to establish remult context (auth needs remult.repo()).
