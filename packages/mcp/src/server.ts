@@ -228,7 +228,7 @@ export function createMcpServer(): McpServer {
   // ─── scaffold_entity ──────────────────────────────────────────────────────────
   server.tool(
     "scaffold_entity",
-    "Generate iRAF entity TypeScript source code from a schema description. Returns code as text — does NOT write files. Run get_example first for reference.",
+    "Generate iRAF entity TypeScript source code from a schema description. Returns code as text. NOTE: If you write validation logic, the function MUST return undefined on success, never true.",
     {
       name: z.string().describe("Entity class name in PascalCase, e.g. 'OrderLine'"),
       key: z.string().describe("Entity API key in kebab-case plural, e.g. 'order-lines'"),

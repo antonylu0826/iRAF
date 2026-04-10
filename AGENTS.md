@@ -172,6 +172,7 @@ PluginRegistry.register("slot", {
 - **Don't** skip `BaseObject` — the `@iEntity` saving hook writes audit fields unconditionally; missing fields cause silent failures.
 - **Don't** register modules after `initPlugins()` — module plugins won't be available.
 - **Don't** put business logic in `@iField.validate` — it runs client-side only; put authoritative validation in `@iEntity.saving`.
+- **Don't** return `true` from `@iField.validate` — returning `true` (e.g. via `cond || "msg"`) will be shown as a generic error. Always use `cond ? undefined : "msg"` to ensure success returns `undefined`.
 - **Don't** mutate `EntityRegistry` or `ModuleRegistry` after bootstrap — registries are effectively frozen after `initAll()`.
 
 ---

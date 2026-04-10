@@ -43,8 +43,17 @@ export interface IFieldMeta {
   hidden?: boolean | ((entity: any) => boolean)
   order?: number
   displayFormat?: string
-  /** Cross-field validation: return error string to fail, undefined to pass. */
-  validate?: (value: any, entity: any) => string | undefined
+  /**
+   * Cross-field validation for this field.
+   *
+   * IMPORTANT:
+   * - Return `undefined` to PASS.
+   * - Return a `string` (error message) to FAIL.
+   * - DO NOT return `true` or other truthy non-string values; they will be treated as errors by the UI.
+   *
+   * Example: `validate: (v) => v.length < 3 ? "Too short" : undefined`
+   */
+  validate?: (value: any, entity: any) => string | undefined;
   /** Mark as audit field; shown in DetailView footer. */
   auditField?: boolean
   /** Control plugin name for this field (e.g. "textarea", "password"). Defaults by field type. */
