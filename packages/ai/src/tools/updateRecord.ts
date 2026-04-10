@@ -6,6 +6,7 @@ export const updateRecordTool: IAiToolDef = {
   name: "update_record",
   description: "更新既有記錄。只需提供要修改的欄位。",
   requiresConfirmation: true,
+  getAffectedEntityKey: (input) => input.entityKey,
   inputSchema: {
     type: "object",
     properties: {

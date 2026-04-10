@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router"
 import { remult } from "remult"
 import { EntityRegistry, EventBus, EVENTS, evalRoleCheck, hasRole, ModuleRegistry, type IActionMeta } from "@iraf/core"
@@ -53,8 +53,9 @@ export function DetailView({
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [globalError, setGlobalError] = useState<unknown>(null)
+  const [drawerData, setDrawerData] = useState<{ title: string; data: any } | null>(null)
 
-  useEffect(() => {
+  const loadItem = useCallback(() => {
     if (isNew) {
       setItem({})
       setLoading(false)
@@ -71,6 +72,18 @@ export function DetailView({
       .catch((e: any) => setGlobalError(e))
       .finally(() => setLoading(false))
   }, [entityClass, id, isNew])
+
+  useEffect(() => { loadItem() }, [loadItem])
+
+  // Refresh when AI writes to this entity
+  useEffect(() => {
+    if (isNew) return
+    const entityMeta = EntityRegistry.getMeta(entityClass as unknown as Function)
+    if (!entityMeta) return
+    return EventBus.on("ai:data-changed", ({ entityKey }: { entityKey: string }) => {
+      if (entityKey === entityMeta.key) loadItem()
+    })
+  }, [entityClass, isNew, loadItem])
 
   // ─── frontend validation ────────────────────────────────────────────────────
   function runValidation(): boolean {
@@ -136,9 +149,13 @@ export function DetailView({
     setActionLoading(actionMeta.methodName)
     setGlobalError(null)
     try {
-      await (controllerClass as any)[actionMeta.methodName](item.id)
-      const data = await remult.repo(entityClass).findId(item.id)
-      if (data) setItem(data as any)
+      const result = await (controllerClass as any)[actionMeta.methodName](item.id)
+      if (actionMeta.resultView === "drawer") {
+        setDrawerData({ title: tModule(actionMeta.caption, actionMeta.caption), data: result })
+      } else {
+        const data = await remult.repo(entityClass).findId(item.id)
+        if (data) setItem(data as any)
+      }
     } catch (e: any) {
       console.error("[iRAF] Action failed:", e)
       setGlobalError(e)
@@ -341,6 +358,105 @@ export function DetailView({
           </div>
         </div>
       )}
+
+      {/* Action result drawer */}
+      {drawerData && (
+        <ActionResultDrawer
+          title={drawerData.title}
+          data={drawerData.data}
+          onClose={() => setDrawerData(null)}
+        />
+      )}
     </div>
+  )
+}
+
+// ─── ActionResultDrawer ────────────────────────────────────────────────────────
+
+function ActionResultDrawer({
+  title,
+  data,
+  onClose,
+}: {
+  title: string
+  data: any
+  onClose: () => void
+}) {
+  // Detect AI conversation messages: array of objects with role + content
+  const isMessages = Array.isArray(data) &&
+    data.length > 0 &&
+    typeof data[0]?.role === "string" &&
+    typeof data[0]?.content === "string"
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 z-40 bg-black/40"
+        onClick={onClose}
+      />
+      {/* Drawer panel */}
+      <div className="fixed inset-y-0 right-0 z-50 flex flex-col w-full max-w-xl bg-background border-l shadow-xl">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 h-14 shrink-0 border-b">
+          <span className="text-sm font-semibold">{title}</span>
+          <button
+            className="rounded-sm opacity-70 hover:opacity-100 transition-opacity"
+            onClick={onClose}
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-5">
+          {isMessages ? (
+            <div className="space-y-3">
+              {data.map((msg: any, i: number) => (
+                <div
+                  key={i}
+                  className={cn(
+                    "flex",
+                    msg.role === "user" ? "justify-end" : "justify-start"
+                  )}
+                >
+                  <div className={cn(
+                    "max-w-[85%] rounded-lg px-3 py-2 text-sm",
+                    msg.role === "user"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted"
+                  )}>
+                    <div className="whitespace-pre-wrap break-words">{msg.content}</div>
+                    {/* Tool calls summary */}
+                    {msg.toolCalls && msg.toolCalls.length > 0 && (
+                      <div className="mt-1 space-y-0.5">
+                        {msg.toolCalls.map((tc: any, ti: number) => (
+                          <div key={ti} className="text-[10px] font-mono text-muted-foreground bg-muted/50 rounded px-1.5 py-0.5">
+                            🔧 {tc.name}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {/* Usage */}
+                    {msg.usage && (
+                      <div className="mt-1 text-[10px] text-muted-foreground/60">
+                        {msg.usage.model} · {msg.usage.inputTokens}↑ {msg.usage.outputTokens}↓ · {(msg.usage.durationMs / 1000).toFixed(1)}s
+                      </div>
+                    )}
+                    <div className="text-[10px] text-muted-foreground/40 mt-0.5">
+                      {new Date(msg.timestamp).toLocaleString()}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <pre className="text-xs font-mono whitespace-pre-wrap break-all bg-muted/40 rounded p-3">
+              {JSON.stringify(data, null, 2)}
+            </pre>
+          )}
+        </div>
+      </div>
+    </>
   )
 }

@@ -1,10 +1,13 @@
 import { useState, useCallback, useRef } from "react"
 import type { IAiMessageDTO, IAiPendingAction, IAiSSEEvent } from "@iraf/core"
+import { EventBus } from "@iraf/core"
 import { useAiContext } from "./AiContext"
 
-interface ConversationInfo {
+export interface ConversationInfo {
   id: string
   title: string
+  archived: boolean
+  lastMessageAt?: string
 }
 
 export function useAiChat() {
@@ -91,12 +94,16 @@ export function useAiChat() {
             })
             break
 
+          case "data_changed":
+            // Notify other components (ListView, DetailView) that entity data changed
+            EventBus.emit("ai:data-changed", { entityKey: event.entityKey })
+            break
+
           case "pending_action":
             setPendingAction(event.action)
             break
 
           case "message":
-            // Replace streaming message with final
             setMessages(prev => {
               const withoutStreaming = prev.filter(m => !m.id.startsWith("streaming-"))
               return [...withoutStreaming, event.message]
@@ -227,7 +234,45 @@ export function useAiChat() {
       })
       if (res.ok) {
         const list = await res.json()
-        setConversations(list.map((c: any) => ({ id: c.id, title: c.title })))
+        setConversations(list.map((c: any) => ({
+          id: c.id,
+          title: c.title,
+          archived: c.archived ?? false,
+          lastMessageAt: c.lastMessageAt,
+        })))
+      }
+    } catch {
+      // ignore
+    }
+  }, [getHeaders])
+
+  const archiveConversation = useCallback(async (id: string, archived: boolean) => {
+    try {
+      await fetch(`/api/ai/conversations/${id}/archive`, {
+        method: "PATCH",
+        headers: getHeaders(),
+        body: JSON.stringify({ archived }),
+      })
+      setConversations(prev => prev.filter(c => c.id !== id))
+      if (conversationId === id && archived) {
+        setConversationId(null)
+        setMessages([])
+        setPendingAction(null)
+      }
+    } catch {
+      // ignore
+    }
+  }, [conversationId, getHeaders])
+
+  const updateConversationTitle = useCallback(async (id: string, title: string) => {
+    try {
+      const res = await fetch(`/api/ai/conversations/${id}/title`, {
+        method: "PATCH",
+        headers: getHeaders(),
+        body: JSON.stringify({ title }),
+      })
+      if (res.ok) {
+        setConversations(prev => prev.map(c => c.id === id ? { ...c, title } : c))
       }
     } catch {
       // ignore
@@ -251,6 +296,8 @@ export function useAiChat() {
     confirmAction,
     loadConversation,
     loadConversations,
+    archiveConversation,
+    updateConversationTitle,
     newConversation,
   }
 }

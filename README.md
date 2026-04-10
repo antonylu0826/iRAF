@@ -36,6 +36,7 @@ iRAF/
 ├── packages/
 │   ├── core/          @iraf/core          — decorators, registries, base types
 │   ├── react/         @iraf/react         — AppShell, PluginRegistry, i18n
+│   ├── ai/            @iraf/ai            — AI Panel (server proxy, providers, orchestrator)
 │   └── mcp/           @iraf/mcp           — MCP server for AI agent integration
 ├── plugins/
 │   └── system/        @iraf/plugin-system — ListView, DetailView, SubGrid, controls
@@ -105,6 +106,45 @@ That's it. The entity appears in the sidebar, gets a full ListView + DetailView,
 
 **Full field type reference:** `modules/sample/src/entities/FeatureGallery.ts`  
 **Master-Detail reference:** `modules/sample/src/entities/MasterItem.ts`
+
+---
+
+## AI Panel
+
+iRAF ships with a built-in conversational AI assistant panel that lets users interact with business data in natural language.
+
+### Features
+
+- **Right-side chat panel** — toggleable sidebar; resizable (280–680px)
+- **Multi-provider** — Anthropic Claude, OpenAI, Gemini; configured by admins in the UI (no `.env` changes needed)
+- **Agentic tool use** — AI can query records, create/update data, and call `@iAction` methods. Write operations require user confirmation before execution.
+- **Markdown rendering** — assistant responses render full Markdown including GFM tables
+- **Persistent history** — all conversations stored in DB (`AiConversation` / `AiMessage`); users can browse and resume past conversations
+- **Conversation management** — users can rename and archive conversations; hard delete is admin-only
+- **Auto page refresh** — after AI modifies data, the current ListView or DetailView refreshes automatically without page reload
+- **Admin audit** — admins can view all users' conversations, thinking chains, and tool usage in the `AI 對話紀錄` management page. A **查看對話內容** action opens the full conversation in a read-only drawer.
+- **Usage statistics** — token usage, latency, and model info visible to admins per conversation
+
+### Configuration
+
+1. Log in as admin → `AI 助手` → `AI 設定`
+2. Enable AI assistant, set Provider (anthropic / openai / gemini), enter API Key and Model
+3. Set `允許使用的角色` to control who sees the panel
+
+### Build order
+
+```bash
+npm run build --workspace=packages/ai   # must come after core
+npm run build --workspace=app
+```
+
+> **Server import:** Use `@iraf/ai/server` (not `@iraf/ai`) in Express server code — the `/server` entry contains Node-only dependencies (providers, router).
+
+### Planned / not yet implemented
+
+- [ ] Attachment upload / download in AI conversation (file context for AI, download generated files)
+- [ ] API key encryption at rest (`AI_ENCRYPTION_SECRET` env var)
+- [ ] Per-user token usage limits
 
 ---
 

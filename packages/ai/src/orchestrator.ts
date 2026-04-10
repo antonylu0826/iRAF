@@ -162,6 +162,12 @@ export class AiOrchestrator {
         const result = await tool.execute(tc.input)
         emit({ type: "tool_result", toolCallId: tc.id, result })
 
+        // Notify frontend to refresh if this tool modified entity data
+        const affectedEntityKey = tool.getAffectedEntityKey?.(tc.input)
+        if (affectedEntityKey) {
+          emit({ type: "data_changed", entityKey: affectedEntityKey })
+        }
+
         // Save tool call + result as messages
         const toolSeq = await this.getNextSeq(conversation.id)
         await msgRepo.insert({
@@ -231,6 +237,12 @@ export class AiOrchestrator {
 
       const result = await tool.execute(pendingMsg.pendingAction!.input)
       emit({ type: "tool_result", toolCallId: pendingMsg.toolCalls?.[0]?.id ?? "", result })
+
+      // Notify frontend to refresh entity data
+      const affectedEntityKey = tool.getAffectedEntityKey?.(pendingMsg.pendingAction!.input)
+      if (affectedEntityKey) {
+        emit({ type: "data_changed", entityKey: affectedEntityKey })
+      }
 
       // Update pending status
       pendingMsg.pendingStatus = "approved"
@@ -307,6 +319,7 @@ export class AiOrchestrator {
     conv.totalDurationMs += durationMs
     conv.messageCount = await remult.repo(AiMessage).count({ conversationId })
     conv.model = this.provider.name
+    conv.lastMessageAt = new Date()
     await convRepo.save(conv)
   }
 

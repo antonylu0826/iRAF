@@ -69,6 +69,8 @@ export type IAiSSEEvent =
   | { type: "conversation"; conversationId: string; title: string }
   | { type: "error"; error: string }
   | { type: "done"; usage?: IAiUsage }
+  /** Emitted after write tools succeed — frontend should refresh the entity's data */
+  | { type: "data_changed"; entityKey: string }
 
 // ─── Status (for frontend toggle visibility) ────────────────────────────────
 

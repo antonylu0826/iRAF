@@ -13,7 +13,7 @@ import { remult } from "remult"
   allowedRoles: {
     read: ["admins", "managers", "users"],
     create: ["admins", "managers", "users"],
-    update: ["admins"],
+    update: ["admins", "managers", "users"],
     delete: ["admins"],
   },
   defaultOrder: { createdAt: "desc" },
@@ -30,6 +30,12 @@ export class AiConversation extends BaseObject {
 
   @iField.string({ caption: "模型", order: 4, readOnly: true })
   model = ""
+
+  @iField.boolean({ caption: "已封存", order: 5 })
+  archived = false
+
+  @iField.date({ caption: "最後訊息時間", order: 6, readOnly: true })
+  lastMessageAt: Date | null = null
 
   @iField.number({ caption: "總輸入 Tokens", order: 10, readOnly: true })
   totalInputTokens = 0

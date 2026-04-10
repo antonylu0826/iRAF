@@ -136,4 +136,10 @@ export interface IActionMeta {
   icon?: string
   allowedRoles?: string[]
   confirmMessage?: string
+  /**
+   * How to display the action's return value.
+   * - undefined / omitted: refresh the record (default)
+   * - "drawer": open a side drawer showing the returned data
+   */
+  resultView?: "drawer"
 }

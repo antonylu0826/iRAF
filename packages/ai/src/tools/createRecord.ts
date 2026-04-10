@@ -6,6 +6,7 @@ export const createRecordTool: IAiToolDef = {
   name: "create_record",
   description: "建立新記錄。需要 entity key 和欄位資料。",
   requiresConfirmation: true,
+  getAffectedEntityKey: (input) => input.entityKey,
   inputSchema: {
     type: "object",
     properties: {

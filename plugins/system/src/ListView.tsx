@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import { useNavigate } from "react-router"
 import { remult } from "remult"
 import { EntityRegistry, EventBus, EVENTS, evalRoleCheck, ModuleRegistry } from "@iraf/core"
@@ -43,7 +43,7 @@ export function ListView({ entityClass, basePath }: ListViewProps) {
   // Whether any row-level action column should appear
   const showActions = rows.some((r) => canDeleteRow(r) || canEditRow(r)) || rows.length === 0
 
-  useEffect(() => {
+  const loadRows = useCallback(() => {
     setLoading(true)
     setError(null)
     remult
@@ -53,6 +53,17 @@ export function ListView({ entityClass, basePath }: ListViewProps) {
       .catch((e: any) => setError(e))
       .finally(() => setLoading(false))
   }, [entityClass])
+
+  useEffect(() => { loadRows() }, [loadRows])
+
+  // Refresh when AI writes to this entity
+  useEffect(() => {
+    const entityMeta = EntityRegistry.getMeta(entityClass as unknown as Function)
+    if (!entityMeta) return
+    return EventBus.on("ai:data-changed", ({ entityKey }: { entityKey: string }) => {
+      if (entityKey === entityMeta.key) loadRows()
+    })
+  }, [entityClass, loadRows])
 
   // Batch-fetch labels for all ref columns whenever rows change
   useEffect(() => {

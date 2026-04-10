@@ -2,6 +2,7 @@ import { defineModule } from "@iraf/core"
 import { AiConfig } from "./entities/AiConfig.js"
 import { AiConfigController } from "./entities/AiConfigController.js"
 import { AiConversation } from "./entities/AiConversation.js"
+import { AiConversationController } from "./entities/AiConversationController.js"
 import { AiMessage } from "./entities/AiMessage.js"
 
 export const AiModule = defineModule({
@@ -9,7 +10,7 @@ export const AiModule = defineModule({
   caption: "AI 助手",
   icon: "Bot",
   entities: [AiConfig, AiConversation, AiMessage],
-  controllers: [AiConfigController],
+  controllers: [AiConfigController, AiConversationController],
   menu: [
     { entity: AiConfig, order: 1 },
     { entity: AiConversation, order: 10 },

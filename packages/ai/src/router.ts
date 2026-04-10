@@ -108,7 +108,7 @@ export function createAiRouter(withRemult: any) {
     const user = remult.user
     if (!user) return res.status(401).json({ error: "Unauthorized" })
 
-    const where: any = {}
+    const where: any = { archived: false }
     if (!user.roles?.includes("admins")) {
       where.userId = user.id
     }
@@ -116,10 +116,43 @@ export function createAiRouter(withRemult: any) {
     const conversations = await remult.repo(AiConversation).find({
       where,
       orderBy: { createdAt: "desc" },
-      limit: 50,
+      limit: 100,
     })
 
     res.json(conversations)
+  })
+
+  // ─── PATCH /api/ai/conversations/:id/archive ────────────────────────────
+  router.patch("/api/ai/conversations/:id/archive", withRemult, async (req: any, res: any) => {
+    const user = remult.user
+    if (!user) return res.status(401).json({ error: "Unauthorized" })
+
+    const conv = await remult.repo(AiConversation).findId(req.params.id)
+    if (!conv) return res.status(404).json({ error: "Conversation not found" })
+    if (!user.roles?.includes("admins") && conv.userId !== user.id) {
+      return res.status(403).json({ error: "Forbidden" })
+    }
+
+    conv.archived = req.body.archived ?? true
+    await remult.repo(AiConversation).save(conv)
+    res.json({ ok: true })
+  })
+
+  // ─── PATCH /api/ai/conversations/:id/title ──────────────────────────────
+  router.patch("/api/ai/conversations/:id/title", withRemult, async (req: any, res: any) => {
+    const user = remult.user
+    if (!user) return res.status(401).json({ error: "Unauthorized" })
+
+    const conv = await remult.repo(AiConversation).findId(req.params.id)
+    if (!conv) return res.status(404).json({ error: "Conversation not found" })
+    if (!user.roles?.includes("admins") && conv.userId !== user.id) {
+      return res.status(403).json({ error: "Forbidden" })
+    }
+
+    if (!req.body.title?.trim()) return res.status(400).json({ error: "Title is required" })
+    conv.title = req.body.title.trim()
+    await remult.repo(AiConversation).save(conv)
+    res.json({ ok: true, title: conv.title })
   })
 
   // ─── GET /api/ai/conversations/:id/messages ─────────────────────────────
