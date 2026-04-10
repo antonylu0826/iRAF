@@ -24,6 +24,7 @@ import { SubGrid } from "./controls/SubGrid"
 import { ProgressBar } from "./controls/ProgressBar"
 import { ThemeToggle } from "./slots/ThemeToggle"
 import { LanguageToggle } from "./slots/LanguageToggle"
+import { AiToggle } from "./slots/AiToggle"
 
 let _initialized = false
 
@@ -70,6 +71,11 @@ export function initPlugins(): void {
     name: "appbar:language-toggle",
     caption: "Language Toggle",
     component: LanguageToggle,
+  })
+  PluginRegistry.register("slot", {
+    name: "appbar:ai-toggle",
+    caption: "AI Toggle",
+    component: AiToggle,
   })
 
   // ─── field type → default control ───────────────────────────────────────────

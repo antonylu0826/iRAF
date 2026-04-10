@@ -50,3 +50,8 @@ export {
 export { SlotArea } from "./components/SlotArea"
 export type { ISlotProps } from "./components/SlotArea"
 export { cn } from "./lib/utils"
+
+// ─── AI Panel ────────────────────────────────────────────────────────────────
+export { AiContextProvider, AiPanelProvider, useAiContext, useAiPanel } from "./components/AiPanel/AiContext"
+export { useAiStatus } from "./components/AiPanel/useAiStatus"
+export { AiPanel } from "./components/AiPanel/AiPanel"

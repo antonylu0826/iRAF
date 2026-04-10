@@ -3,8 +3,9 @@
 import { ModuleRegistry } from "@iraf/core"
 import { SystemModule } from "@iraf/module-system"
 import { SampleModule } from "@iraf/module-sample"
+import { AiModule } from "@iraf/ai"
 
-ModuleRegistry.use(SystemModule, SampleModule)
+ModuleRegistry.use(SystemModule, SampleModule, AiModule)
 
-export { SystemModule, SampleModule }
+export { SystemModule, SampleModule, AiModule }
 

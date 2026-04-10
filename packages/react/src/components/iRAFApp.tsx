@@ -12,6 +12,7 @@ import { initI18n, i18nInstance } from "../i18n/i18n"
 import { initModuleI18n } from "../initModuleI18n"
 import { I18nextProvider } from "react-i18next"
 import { useI18n } from "../i18n/useI18n"
+import { AiContextProvider, AiPanelProvider } from "./AiPanel/AiContext"
 
 interface iRAFAppProps {
   title?: string
@@ -24,7 +25,9 @@ export function iRAFApp({ title = "iRAF App" }: iRAFAppProps) {
     <BrowserRouter>
       <I18nextProvider i18n={i18nInstance}>
         <AuthProvider>
-          <AppRoutes title={title} />
+          <AiPanelProvider>
+            <AppRoutes title={title} />
+          </AiPanelProvider>
         </AuthProvider>
       </I18nextProvider>
     </BrowserRouter>
@@ -62,6 +65,7 @@ function AppRoutes({ title }: { title: string }) {
   }
 
   return (
+    <AiContextProvider>
     <Routes>
       <Route element={<AppShell title={title} />}>
         {firstPath && <Route index element={<Navigate to={firstPath} replace />} />}
@@ -115,5 +119,6 @@ function AppRoutes({ title }: { title: string }) {
         ))}
       </Route>
     </Routes>
+    </AiContextProvider>
   )
 }

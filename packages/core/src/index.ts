@@ -41,6 +41,19 @@ export type {
   AuthLoginPayload,
 } from "./events/EventBus"
 
+// ─── AI Types ──────────────────────────────────────────────────────────────
+export type {
+  IAiContext,
+  IAiChatRequest,
+  IAiConfirmRequest,
+  IAiToolCallInfo,
+  IAiPendingAction,
+  IAiUsage,
+  IAiMessageDTO,
+  IAiSSEEvent,
+  IAiStatus,
+} from "./types/ai"
+
 // ─── Utils ──────────────────────────────────────────────────────────────────
 export { passwordRules } from "./utils/password"
 export type { PasswordRulesOptions } from "./utils/password"

@@ -3,6 +3,7 @@ import { Outlet } from "react-router"
 import { LogOut, Menu } from "lucide-react"
 import { Sidebar } from "./Sidebar"
 import { SlotArea } from "./SlotArea"
+import { AiPanel } from "./AiPanel/AiPanel"
 import { useAuth } from "../context/AuthContext"
 import { useI18n } from "../i18n/useI18n"
 import { Button } from "./ui/button"
@@ -110,6 +111,7 @@ export function AppShell({ title }: { title: string }) {
           </div>
         </main>
       </div>
+      <AiPanel />
     </div>
   )
 }

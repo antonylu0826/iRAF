@@ -6,6 +6,7 @@ import { remult } from "remult"
 import bcrypt from "bcrypt"
 import { EntityRegistry, ModuleRegistry, ServiceRegistry, SERVICE_KEYS, type IPasswordHasher } from "@iraf/core"
 import { AppUser } from "@iraf/module-system"
+import { createAiRouter } from "@iraf/ai/server"
 import { ACTUAL_SECRET, getUser, createAuthRouter } from "./auth"
 import { JwtAuthProvider } from "./JwtAuthProvider"
 import helmet from "helmet"
@@ -61,6 +62,9 @@ app.use(createAuthRouter(api.withRemult))
 
 // iRAF metadata API (for MCP and tooling)
 app.use(createMetaRouter())
+
+// AI Panel router (SSE streaming + conversations API)
+app.use(createAiRouter(api.withRemult))
 
 app.get("/", (_req, res) => {
   res.json({ status: "iRAF Demo Server running", version: "0.1.0" })
