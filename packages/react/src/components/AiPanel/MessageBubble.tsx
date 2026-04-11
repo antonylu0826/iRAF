@@ -1,10 +1,91 @@
-import React from "react"
+import React, { useState } from "react"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import type { IAiMessageDTO } from "@iraf/core"
 import { useAuth } from "../../context/AuthContext"
 import { ToolCallCard } from "./ToolCallCard"
 import { cn } from "../../lib/utils"
+import { Copy, Check } from "lucide-react"
+
+// ─── CodeBlock ────────────────────────────────────────────────────────────────
+
+function CodeBlock({ language, children }: { language?: string; children: string }) {
+  const [copied, setCopied] = useState(false)
+
+  // Auto-format JSON
+  let content = children
+  if (language === "json" || (!language && children.trimStart().startsWith("{"))) {
+    try {
+      content = JSON.stringify(JSON.parse(children), null, 2)
+    } catch {
+      // leave as-is
+    }
+  }
+
+  function copy() {
+    navigator.clipboard.writeText(content).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    })
+  }
+
+  return (
+    <div className="my-2 rounded-lg border border-border overflow-hidden text-[11px] font-mono">
+      {/* Header bar */}
+      <div className="flex items-center justify-between px-3 py-1 bg-muted/60 border-b border-border">
+        <span className="text-[10px] text-muted-foreground">{language ?? "code"}</span>
+        <button
+          type="button"
+          onClick={copy}
+          className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+        >
+          {copied
+            ? <><Check className="h-3 w-3" /> 已複製</>
+            : <><Copy className="h-3 w-3" /> 複製</>
+          }
+        </button>
+      </div>
+      {/* Code content */}
+      <pre className="overflow-x-auto p-3 m-0 bg-muted/30 leading-relaxed">
+        {language === "json" || (!language && content.trimStart().startsWith("{"))
+          ? <JsonHighlight code={content} />
+          : content
+        }
+      </pre>
+    </div>
+  )
+}
+
+// ─── JsonHighlight ────────────────────────────────────────────────────────────
+// Minimal JSON syntax highlighting without any library.
+
+function JsonHighlight({ code }: { code: string }) {
+  // Tokenise line by line using a simple regex
+  const tokens = code.split(
+    /(\"(?:[^\"\\]|\\.)*\"\s*:)|(\"(?:[^\"\\]|\\.)*\")|(true|false|null)|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/g
+  )
+
+  return (
+    <>
+      {tokens.map((tok, i) => {
+        if (!tok) return null
+        // key  (string followed by colon)
+        if (/^\".*\"\s*:$/.test(tok))
+          return <span key={i} className="text-blue-400 dark:text-blue-300">{tok}</span>
+        // string value
+        if (/^\".*\"$/.test(tok))
+          return <span key={i} className="text-green-500 dark:text-green-400">{tok}</span>
+        // boolean / null
+        if (tok === "true" || tok === "false" || tok === "null")
+          return <span key={i} className="text-orange-400 dark:text-orange-300">{tok}</span>
+        // number
+        if (/^-?\d/.test(tok))
+          return <span key={i} className="text-purple-400 dark:text-purple-300">{tok}</span>
+        return tok
+      })}
+    </>
+  )
+}
 
 export function MessageBubble({ message }: { message: IAiMessageDTO }) {
   const isUser = message.role === "user"
@@ -39,12 +120,16 @@ export function MessageBubble({ message }: { message: IAiMessageDTO }) {
                   <td className="border border-border px-2 py-1" {...props} />
                 ),
                 code: ({ node: _n, className, children, ...props }) => {
-                  const isBlock = className?.includes("language-")
-                  return isBlock
-                    ? <code className="block bg-muted/80 rounded p-2 text-[11px] font-mono overflow-x-auto whitespace-pre" {...props}>{children}</code>
-                    : <code className="bg-muted/80 rounded px-1 text-[11px] font-mono" {...props}>{children}</code>
+                  const language = className?.replace("language-", "")
+                  const content = String(children).replace(/\n$/, "")
+                  // Block code (fenced) — hand off to CodeBlock
+                  if (className?.startsWith("language-") || content.includes("\n")) {
+                    return <CodeBlock language={language} children={content} />
+                  }
+                  // Inline code
+                  return <code className="bg-muted/80 rounded px-1 text-[11px] font-mono" {...props}>{children}</code>
                 },
-                pre: ({ node: _n, ...props }) => <pre className="not-prose bg-transparent p-0 m-0" {...props} />,
+                pre: ({ node: _n, children }) => <>{children}</>,
                 p: ({ node: _n, ...props }) => <p className="mb-1 last:mb-0" {...props} />,
               }}
             >

@@ -15,6 +15,17 @@ export function AiContextProvider({ children }: { children: React.ReactNode }) {
 
   const context = useMemo<IAiContext>(() => {
     const parts = location.pathname.split("/").filter(Boolean)
+
+    // Dashboard global routes: /dashboards or /dashboards/:id
+    if (parts[0] === "dashboards") {
+      return {
+        currentModule: "dashboards",
+        currentEntity: "dashboards",
+        currentRecordId: parts[1],
+        currentView: parts[1] ? "dashboard" : "list",
+      }
+    }
+
     return {
       currentModule: parts[0],
       currentEntity: parts[1],

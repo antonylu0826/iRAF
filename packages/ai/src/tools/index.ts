@@ -5,6 +5,7 @@ import { getSchemaTool } from "./getSchema.js"
 import { callActionTool } from "./callAction.js"
 import { createRecordTool } from "./createRecord.js"
 import { updateRecordTool } from "./updateRecord.js"
+import { generateWidgetConfigTool } from "./generateWidgetConfig.js"
 
 export type { IAiToolDef } from "./types.js"
 
@@ -12,6 +13,7 @@ export function getAvailableTools(user: IUserContext, allowWriteOperations: bool
   const tools: IAiToolDef[] = [
     getSchemaTool,
     queryEntityTool,
+    generateWidgetConfigTool,
   ]
 
   if (allowWriteOperations) {

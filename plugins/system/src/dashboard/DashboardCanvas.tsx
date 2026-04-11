@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import { useParams, useNavigate } from "react-router"
 import { remult } from "remult"
-import { ModuleRegistry, EntityRegistry } from "@iraf/core"
+import { ModuleRegistry, EntityRegistry, EventBus } from "@iraf/core"
 import { Dashboard, DashboardWidget } from "@iraf/dashboard"
 import type { IPermissionEntry } from "@iraf/dashboard"
 import { useAuth, cn } from "@iraf/react"
@@ -72,6 +72,15 @@ export function DashboardCanvas() {
   }, [id])
 
   useEffect(() => { load() }, [load])
+
+  // Auto-refresh when AI creates/updates dashboard-widgets
+  useEffect(() => {
+    return EventBus.on("ai:data-changed", ({ entityKey }: { entityKey: string }) => {
+      if (entityKey === "dashboard-widgets" || entityKey === "dashboards") {
+        if (!editMode) load()
+      }
+    })
+  }, [load, editMode])
 
   // ─── Permissions ───────────────────────────────────────────────────────────
 
