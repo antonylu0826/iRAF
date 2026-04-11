@@ -25,6 +25,15 @@ import { ProgressBar } from "./controls/ProgressBar"
 import { ThemeToggle } from "./slots/ThemeToggle"
 import { LanguageToggle } from "./slots/LanguageToggle"
 import { AiToggle } from "./slots/AiToggle"
+import { DashboardListView } from "./dashboard/DashboardListView"
+import { DashboardCanvas } from "./dashboard/DashboardCanvas"
+import { DashboardNav } from "./dashboard/DashboardNav"
+import { KpiCardWidget } from "./widgets/KpiCardWidget"
+import { BarChartWidget } from "./widgets/BarChartWidget"
+import { LineChartWidget } from "./widgets/LineChartWidget"
+import { PieChartWidget } from "./widgets/PieChartWidget"
+import { DataTableWidget } from "./widgets/DataTableWidget"
+import { MarkdownWidget } from "./widgets/MarkdownWidget"
 
 let _initialized = false
 
@@ -76,6 +85,32 @@ export function initPlugins(): void {
     name: "appbar:ai-toggle",
     caption: "AI Toggle",
     component: AiToggle,
+  })
+
+  // ─── dashboard views ─────────────────────────────────────────────────────────
+  PluginRegistry.register("list-view", {
+    name: "dashboards",
+    caption: "Dashboard List",
+    component: DashboardListView,
+  })
+  PluginRegistry.register("detail-view", {
+    name: "dashboard-canvas",
+    caption: "Dashboard Canvas",
+    component: DashboardCanvas,
+  })
+
+  // ─── widget types ──────────────────────────────────────────────────────────
+  PluginRegistry.register("widget", { name: "kpi-card",    caption: "KPI 指標卡片", icon: "Hash",      component: KpiCardWidget })
+  PluginRegistry.register("widget", { name: "bar-chart",   caption: "長條圖",       icon: "BarChart3", component: BarChartWidget })
+  PluginRegistry.register("widget", { name: "line-chart",  caption: "折線圖",       icon: "LineChart", component: LineChartWidget })
+  PluginRegistry.register("widget", { name: "pie-chart",   caption: "圓餅圖",       icon: "PieChart",  component: PieChartWidget })
+  PluginRegistry.register("widget", { name: "data-table",  caption: "資料表格",     icon: "Table",     component: DataTableWidget })
+  PluginRegistry.register("widget", { name: "markdown",    caption: "Markdown",     icon: "FileText",  component: MarkdownWidget })
+
+  PluginRegistry.register("slot", {
+    name: "sidebar-header:dashboards",
+    caption: "Dashboard Navigation",
+    component: DashboardNav,
   })
 
   // ─── field type → default control ───────────────────────────────────────────

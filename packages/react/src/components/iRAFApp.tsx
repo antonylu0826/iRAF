@@ -70,6 +70,21 @@ function AppRoutes({ title }: { title: string }) {
       <Route element={<AppShell title={title} />}>
         {firstPath && <Route index element={<Navigate to={firstPath} replace />} />}
 
+        {/* Dashboard global routes */}
+        {(() => {
+          const dashList = PluginRegistry.resolve("list-view", "dashboards")
+          const dashCanvas = PluginRegistry.resolve("detail-view", "dashboard-canvas")
+          if (!dashList || !dashCanvas) return null
+          const DashList = dashList.component as React.ComponentType<any>
+          const DashCanvas = dashCanvas.component as React.ComponentType<any>
+          return (
+            <Route path="dashboards">
+              <Route index element={<DashList />} />
+              <Route path=":id" element={<DashCanvas />} />
+            </Route>
+          )
+        })()}
+
         {modules.map((mod) => (
           <Route key={mod.key} path={mod.key}>
             {/* Module root route: redirect to the first entity (dashboard reserved). */}
