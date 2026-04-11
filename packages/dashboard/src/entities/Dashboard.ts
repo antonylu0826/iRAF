@@ -53,10 +53,10 @@ export class Dashboard extends BaseObject {
   order = 0
 
   // ─── Permissions ────────────────────────────────────────
-  @iField.json({ caption: "可檢視權限", order: 10 })
+  @iField.json({ caption: "可檢視權限", order: 10, control: "permission-picker" })
   viewPermissions: IPermissionEntry[] = []
 
-  @iField.json({ caption: "可編輯權限", order: 11 })
+  @iField.json({ caption: "可編輯權限", order: 11, control: "permission-picker" })
   editPermissions: IPermissionEntry[] = []
 
   @iField.boolean({ caption: "公開", order: 12 })

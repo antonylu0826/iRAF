@@ -18,6 +18,7 @@ import {
   PasswordInput,
 } from "./controls/builtins"
 import { RolesInput } from "./controls/RolesInput"
+import { PermissionPicker } from "./controls/PermissionPicker"
 import { SelectInput } from "./controls/SelectInput"
 import { LookupInput } from "./controls/LookupInput"
 import { SubGrid } from "./controls/SubGrid"
@@ -68,7 +69,8 @@ export function initPlugins(): void {
   PluginRegistry.register("control", { name: "select",   caption: "Select",        component: SelectInput   })
   PluginRegistry.register("control", { name: "lookup",   caption: "Lookup",        component: LookupInput   })
   PluginRegistry.register("control", { name: "subgrid",  caption: "Subgrid",       component: SubGrid       })
-  PluginRegistry.register("control", { name: "progress", caption: "Progress",      component: ProgressBar   })
+  PluginRegistry.register("control", { name: "progress",          caption: "Progress",          component: ProgressBar         })
+  PluginRegistry.register("control", { name: "permission-picker", caption: "Permission Picker", component: PermissionPicker    })
 
   // ─── slots ─────────────────────────────────────────────────────────────────
   PluginRegistry.register("slot", {
